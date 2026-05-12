@@ -210,13 +210,15 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 /* Copy button — inline */
 .cp {
-  background: none; border: none; cursor: pointer;
-  color: var(--ink3); font-size: 11px; padding: 1px 4px;
-  border-radius: 3px; font-family: var(--sans);
+  background: var(--bg); border: 1px solid var(--rule);
+  cursor: pointer; color: var(--ink3);
+  padding: 4px 10px; border-radius: 5px;
+  font-size: 12px; font-family: var(--sans);
   transition: all 0.12s; flex-shrink: 0;
+  white-space: nowrap;
 }
-.cp:hover { background: var(--accent-light); color: var(--accent); }
-.cp.ok { color: var(--success); }
+.cp:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+.cp.ok { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
 
 /* Line item section */
 .line-section { border-bottom: 1px solid var(--rule); }
@@ -246,7 +248,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .lf-val.big { font-size: 16px; font-weight: 700; }
 .lf-val.muted { color: var(--ink3); font-style: italic; font-family: var(--sans); font-size: 11px; font-weight: 400; }
 .lf-val.invoice-ref { font-size: 11px; color: var(--ink3); font-family: var(--mono); font-weight: 400; }
-.lf-copy { margin-left: 8px; }
+.lf-copy { margin-left: 6px; }
 
 /* Calc strip — compact single line */
 .calc-strip {
@@ -779,14 +781,18 @@ function renderInvoice(){
 
   // Header fields — 2-col compact grid
   const blocked=!inv.verifyOk&&inv.grandTotal;
-  const cpBtn=(text,val)=>blocked?'':`<button class="cp" onclick="copyText(this,'${esc(val)}')" title="Copy">⧉</button>`;
+  const cpBtn=(text,val)=>blocked?'':`<button class="cp" onclick="copyText(this,'${esc(val)}')">Copy</button>`;
 
   html+=`<div class="fields-header">
+    <div class="field-item" style="grid-column:1/-1">
+      <div class="field-label">Name</div>
+      <div class="field-val text">Hoya Lens (S) Pte Ltd ${cpBtn('name','Hoya Lens (S) Pte Ltd')}</div>
+    </div>
     <div class="field-item">
       <div class="field-label">Invoice Date</div>
       <div class="field-val">${inv.date||'—'} ${inv.date?cpBtn('date',inv.date):''}</div>
     </div>
-    <div class="field-item">
+    <div class="field-item" style="grid-column:1/-1">
       <div class="field-label">Invoice No</div>
       <div class="field-val">${inv.invoiceNo} ${cpBtn('inv',inv.invoiceNo)}</div>
     </div>
@@ -817,11 +823,11 @@ function renderInvoice(){
         <div class="line-fields">
           <div class="lf-row">
             <span class="lf-label">Item Code</span>
-            <span class="lf-val">${m?m.code:'<span style="color:var(--danger)">—</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${m.code}')">⧉</button>`:''}</span>
+            <span class="lf-val">${m?m.code:'<span style="color:var(--danger)">—</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${m.code}')">Copy</button>`:''}</span>
           </div>
           <div class="lf-row">
             <span class="lf-label">Description</span>
-            <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">⧉</button>`:''}</span>
+            <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">Copy</button>`:''}</span>
           </div>
           <div class="lf-row">
             <span class="lf-label">Invoice</span>
