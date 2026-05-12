@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP Invoice Assistant — Hoya</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#F7F6F3;--white:#FFFFFF;--ink:#1A1A1A;--ink2:#4A4A4A;--ink3:#8A8A8A;--rule:#E4E2DC;--accent:#1A3A5C;--accent-light:#E8EFF6;--success:#1A6B3C;--success-light:#E6F4EC;--warning:#7A4A00;--warning-light:#FFF8E6;--danger:#7A1A1A;--danger-light:#F9EDED;--hoya-red:#CC2222;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;min-height:100vh}
+.header{background:var(--white);border-bottom:1px solid var(--rule);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:12px}
+.ep-mark{width:32px;height:32px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:white;font-weight:600;font-size:13px}
+.header h1{font-size:15px;font-weight:600;letter-spacing:-.3px}
+.header h1 span{color:var(--ink3);font-weight:400}
+.pilot-badge{background:var(--warning-light);color:var(--warning);font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px;border:1px solid #F0D080}
+.main{max-width:780px;margin:0 auto;padding:32px 24px}
+.upload-zone{background:var(--white);border:2px dashed var(--rule);border-radius:14px;padding:48px 32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:20px;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{width:48px;height:48px;background:var(--accent-light);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px}
+.upload-zone h3{font-size:15px;font-weight:500;margin-bottom:5px}
+.upload-zone p{font-size:13px;color:var(--ink3);line-height:1.7}
+.upload-zone p strong{color:var(--ink2)}
+.file-queue{background:var(--white);border:1px solid var(--rule);border-radius:12px;margin-bottom:20px;overflow:hidden;display:none}
+.fq-header{padding:14px 20px;border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.fq-title{font-size:13px;font-weight:600}
+.fq-subtitle{font-size:12px;color:var(--ink3);margin-top:2px}
+.btn-analyse{background:var(--accent);color:white;border:none;border-radius:8px;padding:10px 24px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity .15s;white-space:nowrap;flex-shrink:0}
+.btn-analyse:hover:not(:disabled){opacity:.88}
+.btn-analyse:disabled{opacity:.4;cursor:not-allowed}
+.file-list{padding:4px 0}
+.file-item{padding:10px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--rule)}
+.file-item:last-child{border-bottom:none}
+.fi-name{flex:1;font-family:var(--mono);font-size:12px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-size{font-size:11px;color:var(--ink3);flex-shrink:0}
+.fi-type{font-size:11px;padding:2px 8px;border-radius:99px;flex-shrink:0;font-weight:500}
+.fi-pdf{background:#FEE2E2;color:#991B1B}
+.fi-img{background:var(--accent-light);color:var(--accent)}
+.progress-wrap{background:var(--white);border:1px solid var(--rule);border-radius:12px;padding:22px 24px;margin-bottom:20px;display:none}
+.prog-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px}
+.prog-track{height:5px;background:var(--rule);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .35s ease;width:0%}
+.prog-detail{font-size:12px;color:var(--ink3);margin-top:8px}
+.invoice-viewer{display:none}
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.nav-center{text-align:center}
+.nav-main{font-size:14px;font-weight:600}
+.nav-sub{font-size:12px;color:var(--ink3);margin-top:2px;font-family:var(--mono)}
+.nav-btn{background:var(--white);border:1px solid var(--rule);border-radius:8px;padding:9px 22px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;color:var(--ink2);transition:all .15s}
+.nav-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.nav-btn:disabled{opacity:.3;cursor:not-allowed}
+.nav-btn.done{background:var(--success);color:white;border-color:var(--success)}
+.invoice-card{background:var(--white);border:1px solid var(--rule);border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.supplier-banner{background:var(--accent);padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.supplier-name{color:white;font-size:13px;font-weight:600}
+.supplier-badge{background:rgba(255,255,255,.15);color:white;font-size:11px;padding:3px 10px;border-radius:99px}
+.credit-banner{background:#7A1A1A;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+.credit-note-warning{padding:24px;text-align:center}
+.credit-note-warning h3{font-size:15px;font-weight:600;color:var(--danger);margin-bottom:6px}
+.credit-note-warning p{font-size:13px;color:var(--ink2);line-height:1.6}
+.field-row{display:flex;align-items:center;padding:13px 24px;border-bottom:1px solid var(--rule);gap:16px}
+.field-row:hover{background:#FAFAF8}
+.field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);width:110px;flex-shrink:0}
+.field-value{flex:1;font-size:14px;color:var(--ink);font-weight:500}
+.field-value.mono{font-family:var(--mono);font-size:13px}
+.copy-btn{background:var(--bg);border:1px solid var(--rule);cursor:pointer;color:var(--ink3);padding:5px 12px;border-radius:6px;font-size:12px;font-family:var(--sans);transition:all .15s;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+.copy-btn.copied{background:var(--success-light);border-color:var(--success);color:var(--success)}
+.section-divider{padding:10px 24px;background:var(--bg);border-bottom:1px solid var(--rule);border-top:2px solid var(--accent);display:flex;align-items:center;justify-content:space-between}
+.section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent)}
+.match-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.3px}
+.match-high{background:var(--success-light);color:var(--success)}
+.match-med{background:var(--warning-light);color:var(--warning)}
+.match-low{background:var(--danger-light);color:var(--danger)}
+.verify-box{padding:14px 24px;background:#F0F4F8;border-top:1px solid var(--rule)}
+.verify-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:8px}
+.verify-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;color:var(--ink2)}
+.verify-divider{border:none;border-top:1px solid var(--rule);margin:6px 0}
+.verify-total{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);padding:4px 0}
+.verify-check{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600}
+.verify-ok{background:var(--success-light);color:var(--success)}
+.verify-warn{background:var(--warning-light);color:var(--warning)}
+.verify-err{background:var(--danger-light);color:var(--danger)}
+.grand-total-bar{background:var(--accent);padding:16px 24px;display:flex;justify-content:space-between;align-items:center;color:white}
+.gt-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;opacity:.7}
+.gt-amount{font-family:var(--mono);font-size:24px;font-weight:500}
+.gt-copy{background:rgba(255,255,255,.15);border:none;color:white;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:var(--sans);margin-top:5px;display:block;transition:background .15s}
+.gt-copy:hover{background:rgba(255,255,255,.25)}
+.gt-missing{background:var(--warning-light);border-top:1px solid #F0D898;padding:13px 24px;color:var(--warning);font-size:13px;font-weight:500}
+.warn-banner{background:var(--warning-light);border-top:1px solid #F0D898;padding:11px 24px;font-size:12px;color:var(--warning)}
+.copy-btn[disabled]{opacity:.3;cursor:not-allowed;pointer-events:none}
+.blocked-overlay{display:none}
+.invoice-card.blocked .copy-btn{opacity:.3;cursor:not-allowed;pointer-events:none}
+.invoice-card.blocked .copy-btn::after{content:''}
+.error-box{background:var(--danger-light);border:1px solid #E8C0C0;border-radius:10px;padding:14px 18px;font-size:13px;color:var(--danger);margin-bottom:16px;display:none}
+.reset-wrap{text-align:center;margin-top:24px}
+.reset-btn{background:none;border:none;color:var(--ink3);font-size:13px;cursor:pointer;font-family:var(--sans);text-decoration:underline}
+.reset-btn:hover{color:var(--hoya-red)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:white;padding:10px 22px;border-radius:8px;font-size:13px;transition:transform .25s ease;z-index:999;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <div class="ep-mark">EP</div>
+    <h1>Invoice Assistant <span>— Hoya Pilot</span></h1>
+  </div>
+  <span class="pilot-badge">HOYA ONLY · v12</span>
+</header>
+<main class="main">
+  <div class="error-box" id="errorBox"></div>
+  <!-- API Key section - only shown if no key saved -->
+  <div id="apiKeySection" style="background:var(--white);border:1px solid var(--rule);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:none">
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">First-time setup — Enter API Key</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." style="flex:1;border:1px solid var(--rule);border-radius:6px;padding:8px 12px;font-family:var(--mono);font-size:12px;outline:none"/>
+      <button onclick="saveApiKeyFromInput()" style="background:var(--accent);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;white-space:nowrap;font-family:var(--sans)">Save Key</button>
+    </div>
+    <div style="font-size:11px;color:var(--ink3);margin-top:8px">Key will be saved on this browser — you won't need to enter it again on this computer.</div>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*,.pdf,application/pdf" multiple />
+    <div class="upload-icon">📁</div>
+    <h3>Upload Hoya invoice files</h3>
+    <p>
+      <strong>PDF files</strong> (Epson scans) — single or multi-page, all pages read automatically<br>
+      <strong>Photos</strong> (JPG/PNG) — WhatsApp or AirDrop from phone to desktop first<br>
+      Select all files at once — invoices grouped by invoice number automatically
+    </p>
+  </div>
+  <div class="file-queue" id="fileQueue">
+    <div class="fq-header">
+      <div>
+        <div class="fq-title" id="fqTitle">0 files selected</div>
+        <div class="fq-subtitle" id="fqSub"></div>
+      </div>
+      <button class="btn-analyse" id="analyseBtn" onclick="processAll()" disabled>
+        <span class="spinner" id="btnSpinner" style="display:none"></span>
+        Analyse Invoices
+      </button>
+    </div>
+    <div class="file-list" id="fileList"></div>
+  </div>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="prog-row">
+      <span style="font-size:13px;font-weight:500;color:var(--ink2)" id="progLabel">Processing...</span>
+      <span style="font-size:13px;color:var(--ink3);font-family:var(--mono)" id="progCount"></span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-detail" id="progDetail"></div>
+  </div>
+  <div class="invoice-viewer" id="invoiceViewer">
+    <div class="nav-bar">
+      <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Previous</button>
+      <div class="nav-center">
+        <div class="nav-main" id="navMain">Invoice 1 of 1</div>
+        <div class="nav-sub" id="navSub"></div>
+      </div>
+      <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+    </div>
+    <div class="invoice-card" id="invoiceCard"></div>
+    <div class="reset-wrap">
+      <button class="reset-btn" onclick="resetAll()">Start over with new invoices</button>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// API key management - stored in localStorage so staff only enter once
+function getApiKey(){
+  return localStorage.getItem('ep_hoya_api_key')||'';
+}
+function saveApiKey(key){
+  localStorage.setItem('ep_hoya_api_key',key);
+}
+const STORED_KEY='';
+
+// Hoya item database — 182 active items from Frontwave export
+const HOYA_ITEMS=[{"code": "O00120", "type": "Ophthalmic Lens", "description": "Hoya Full Control"}, {"code": "LE3006", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux V+ 1.74 Meiryo"}, {"code": "LE2975", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux Classic 1.53 PNX Meiryo Sensity"}, {"code": "LE2971", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux Classic 1.60 Meiryo"}, {"code": "LE2911", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux Classic 1.74 UV"}, {"code": "LE2909", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux Classic 1.60 UV"}, {"code": "LE2908", "type": "Ophthalmic Lens", "description": "(26) Hoya Nulux Classic 1.55 UV"}, {"code": "LE2893", "type": "Ophthalmic Lens", "description": "(26) Hoya Sync 3 Pro 1.60 Meiryo Sensity"}, {"code": "LE2685", "type": "Ophthalmic Lens", "description": "(26) Hoya Myself Profile 1.53 PNX Meiryo"}, {"code": "LE2679", "type": "Ophthalmic Lens", "description": "Hoyalux Enroute Pro 1.67 HVLL"}, {"code": "LE2667", "type": "Ophthalmic Lens", "description": "Hoya VisuPro All Day i 1.50 Sensity"}, {"code": "LE2666", "type": "Ophthalmic Lens", "description": "Hoya VisuPro All Day i 1.74 HVLL UV Protection"}, {"code": "LE2664", "type": "Ophthalmic Lens", "description": "Hoya VisuPro All Day i 1.67 HVLL UV Protection"}, {"code": "LE2662", "type": "Ophthalmic Lens", "description": "Hoya VisuPro All Day i 1.50 HVLL UV Protection"}, {"code": "LE2490", "type": "Ophthalmic Lens", "description": "Pentax 1.74 (Stk) AS INC"}, {"code": "LE2420", "type": "Ophthalmic Lens", "description": "Hoya MiYOSMART 1.59 Sensity  Full Control HVLL"}, {"code": "LE2415", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.67 Sensity 2/Sensity Fast HVLL"}, {"code": "LE2414", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.6 Sensity 2/Sensity Fast HVLL"}, {"code": "LE2413", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.53 Sensity 2/Sensity Fast HVLL"}, {"code": "LE2412", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.50 Sensity 2/Sensity Fast HVLL"}, {"code": "LE2411", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.74 HVLL UV Protection"}, {"code": "LE2410", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.67 HVLL UV Protection"}, {"code": "LE2409", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.60 HVLL UV Protection"}, {"code": "LE2408", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.53 HVLL UV Protection"}, {"code": "LE2407", "type": "Ophthalmic Lens", "description": "Hoya LifeStyle 4 1.50 HVLL UV Protection"}, {"code": "LE2402", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.67 Sensity 2 / Sensity Fast HVLL UV Protection"}, {"code": "LE2401", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.6 Sensity 2 / Sensity Fast HVLL UV Protection"}, {"code": "LE2400", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.53 Sensity 2 / Sensity Fast HVLL UV Protection"}, {"code": "LE2399", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.50 Sensity 2 / Sensity Fast HVLL UV Protection"}, {"code": "LE2398", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.74 HVLL UV Protection"}, {"code": "LE2397", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.67 HVLL UV Protection"}, {"code": "LE2396", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.60 HVLL UV Protection"}, {"code": "LE2395", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.53 HVLL UV Protection"}, {"code": "LE2394", "type": "Ophthalmic Lens", "description": "Hoya MySelf Profile 1.50 HVLL UV Protection"}, {"code": "LE2151", "type": "Ophthalmic Lens", "description": "Hoya MiYOSMART 1.59 HVLL Full Control"}, {"code": "LE2150", "type": "Ophthalmic Lens", "description": "Hoya MiYOSMART 1.59 HVLL"}, {"code": "LE2148", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.74 HVLL UV Protection"}, {"code": "LE2146", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+1.53 HVLL UV Protection"}, {"code": "LE2138", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic 1.74 (RX) HVLL UV Protection"}, {"code": "LE2136", "type": "Ophthalmic Lens", "description": "Nulux Classic 1.55"}, {"code": "LE2135", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic Full Control 1.74"}, {"code": "LE2134", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic Full Control 1.67"}, {"code": "LE2133", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic Full Control 1.60"}, {"code": "LE2132", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic Full Control 1.55"}, {"code": "LE2131", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic Full Control 1.53"}, {"code": "LE2130", "type": "Ophthalmic Lens", "description": "Hoya Full Control PAL, Progressive & Others"}, {"code": "LE2115", "type": "Ophthalmic Lens", "description": "Pentax 1.60 SPH HD INC Polarised"}, {"code": "LE2114", "type": "Ophthalmic Lens", "description": "Pentax 1.59 SPH HD INC Polarised"}, {"code": "LE2113", "type": "Ophthalmic Lens", "description": "Pentax 1.50 SPH HD INC Polarised"}, {"code": "LE2112", "type": "Ophthalmic Lens", "description": "Pentax 1.67 (Rx) AS INC Sensity/Sensity Blue"}, {"code": "LE2111", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (Stk) 1.60 HVLL Sensity 2"}, {"code": "LE2110", "type": "Ophthalmic Lens", "description": "Pentax 1.59 (RX) AS INC/ INC Blue"}, {"code": "LE2100", "type": "Ophthalmic Lens", "description": "Hoya WorkStyle 3 1.53 HVLL"}, {"code": "LE2091", "type": "Ophthalmic Lens", "description": "Pentax 1.55 (STK) AS INC Blue"}, {"code": "LE2086", "type": "Ophthalmic Lens", "description": "Pentax 1.60 (Rx) AS INC Sensity/Sensity Blue"}, {"code": "LE2085", "type": "Ophthalmic Lens", "description": "Pentax 1.55 (RX) AS INC/ INC Blue"}, {"code": "LE2056", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (STK) 1.67 HVLL Sensity (Grey/Brown)"}, {"code": "LE2055", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (STK) 1.60 HVLL Sensity (Grey/Brown)"}, {"code": "LE2029", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.60 Sensity 2 HVLL UV Protection"}, {"code": "LE2028", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.53 PNX Sensity 2 HVLL UV Protection"}, {"code": "LE2027", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.50 Sensity 2 HVLL UV Protection"}, {"code": "LE2026", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.74 HVLL UV Protection"}, {"code": "LE2024", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.60 HVLL UV Protection"}, {"code": "LE2023", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.53 PNX HVLL UV Protection"}, {"code": "LE2022", "type": "Ophthalmic Lens", "description": "Hoya MySelf 1.50 HVLL UV Protection"}, {"code": "LE2005", "type": "Ophthalmic Lens", "description": "Hoya Sync III 1.67 HVLL"}, {"code": "LE2004", "type": "Ophthalmic Lens", "description": "Hoya Sync III 1.60 HVLL"}, {"code": "LE2003", "type": "Ophthalmic Lens", "description": "Hoya Sync III 1.53 HVLL"}, {"code": "LE2001", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.67 HVLL Sensity 2"}, {"code": "LE2000", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.53 HVLL Sensity 2"}, {"code": "LE1999", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.50 HVLL Sensity 2"}, {"code": "LE1998", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.74 HVLL"}, {"code": "LE1997", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.67 HVLL"}, {"code": "LE1996", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.60 HVLL"}, {"code": "LE1995", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.53 HVLL"}, {"code": "LE1994", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.50 HVLL"}, {"code": "LE1993", "type": "Ophthalmic Lens", "description": "Hoya Sync III Pro 1.60 HVLL Sensity 2"}, {"code": "LE1981", "type": "Ophthalmic Lens", "description": "Hoyalux MyStyle V+ 1.60 HVLL UV Protection"}, {"code": "LE1958", "type": "Ophthalmic Lens", "description": "Hoyalux MyStyle V+ 1.74 HVLL UV Protection"}, {"code": "LE1954", "type": "Ophthalmic Lens", "description": "Hoyalux MyStyle V+ 1.53 PNX HVLL UV Protection"}, {"code": "LE1953", "type": "Ophthalmic Lens", "description": "Hoyalux MyStyle V+ 1.53 PNX Sensity 2 HVLL UV Protection"}, {"code": "LE1950", "type": "Ophthalmic Lens", "description": "Hoyalux MyStyle V+ 1.60 Sensity 2 HVLL UV Protection"}, {"code": "LE1949", "type": "Ophthalmic Lens", "description": "Hoya Mirror"}, {"code": "LE1759", "type": "Ophthalmic Lens", "description": "Hoya MiYOSMART 1.59 Sensity Grey HVLL"}, {"code": "LE1578", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic  (STK) 1.55 HVP Sensity (Grey/Brown )"}, {"code": "LE1574", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic  (STK) 1.74"}, {"code": "LE1573", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic  (STK) 1.67"}, {"code": "LE1572", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic  (STK) 1.60"}, {"code": "LE1569", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.67 HVLL Sensity 2"}, {"code": "LE1568", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.60 HVLL Sensity 2"}, {"code": "LE1567", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.53 HVLL Sensity 2"}, {"code": "LE1566", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.50 HVLL Sensity 2"}, {"code": "LE1565", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.67 HVLL UV Protection"}, {"code": "LE1564", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.60 HVLL UV Protection"}, {"code": "LE1563", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.53 HVLL UV Protection"}, {"code": "LE1562", "type": "Ophthalmic Lens", "description": "Hoya Hilux Classic (RX) 1.50 HVLL UV Protection"}, {"code": "LE1561", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.67 HVLL Sensity 2"}, {"code": "LE1560", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.60 HVLL Sensity 2"}, {"code": "LE1559", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.53 HVLL Sensity 2"}, {"code": "LE1558", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.50 HVLL Sensity 2"}, {"code": "LE1557", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.53 HVLL UV Protection"}, {"code": "LE1556", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.50 HVLL UV Protection"}, {"code": "LE1552", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.67 HVLL Sensity 2"}, {"code": "LE1551", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.60 HVLL Sensity 2"}, {"code": "LE1550", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.53 HVLL Sensity 2"}, {"code": "LE1549", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.50 HVLL Sensity 2"}, {"code": "LE1548", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.67 HVLL UV Protection"}, {"code": "LE1547", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.60 HVLL UV Protection"}, {"code": "LE1546", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.53 HVLL UV Protection"}, {"code": "LE1545", "type": "Ophthalmic Lens", "description": "Hoya Nulux TF 1.50 HVLL UV Protection"}, {"code": "LE1544", "type": "Ophthalmic Lens", "description": "Hoya Nulux EP 1.67 HVLL Sensity 2"}, {"code": "LE1543", "type": "Ophthalmic Lens", "description": "Hoya Nulux EP 1.60 HVLL Sensity 2"}, {"code": "LE1542", "type": "Ophthalmic Lens", "description": "Hoya Nulux EP 1.74  HVLL"}, {"code": "LE1541", "type": "Ophthalmic Lens", "description": "Hoya Nulux EP 1.67  HVLL"}, {"code": "LE1540", "type": "Ophthalmic Lens", "description": "Hoya Nulux EP 1.60  HVLL"}, {"code": "LE1539", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+ 1.67  HVLL Sensity 2"}, {"code": "LE1538", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+ 1.60  HVLL Sensity 2"}, {"code": "LE1537", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+ 1.50  HVLL Sensity 2"}, {"code": "LE1536", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+1.74 HVLL UV Protection"}, {"code": "LE1535", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+1.67 HVLL UV Protection"}, {"code": "LE1534", "type": "Ophthalmic Lens", "description": "Hoya Nulux V+1.60 HVLL UV Protection"}, {"code": "LE1532", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.67 HVLL Sensity"}, {"code": "LE1531", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.60 HVLL Sensity"}, {"code": "LE1530", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.50 HVLL Sensity"}, {"code": "LE1529", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.67 HVLL"}, {"code": "LE1528", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.60 HVLL"}, {"code": "LE1527", "type": "Ophthalmic Lens", "description": "Hoya Nulux Active Classic 1.50 HVLL"}, {"code": "LE1511", "type": "Ophthalmic Lens", "description": "Hoyalux SuperReader B 1.67 HVLL"}, {"code": "LE1510", "type": "Ophthalmic Lens", "description": "Hoyalux SuperReader B 1.60 HVLL"}, {"code": "LE1509", "type": "Ophthalmic Lens", "description": "Hoyalux SuperReader B 1.50 HVLL"}, {"code": "LE1507", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle Business 1.74 HVLL"}, {"code": "LE1506", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle Business 1.67 HVLL"}, {"code": "LE1505", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle Business 1.60 HVLL"}, {"code": "LE1504", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle Business 1.53 HVLL"}, {"code": "LE1503", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle Business 1.50 HVLL"}, {"code": "LE1499", "type": "Ophthalmic Lens", "description": "Hoya WorkStyle 3 1.67 HVLL"}, {"code": "LE1498", "type": "Ophthalmic Lens", "description": "Hoyalux WorkStyle 3 1.60 HVLL"}, {"code": "LE1497", "type": "Ophthalmic Lens", "description": "Hoya WorkStyle 3 1.50 HVLL"}, {"code": "LE1484", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.60 Sensity 2 HVLL"}, {"code": "LE1483", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.67 Sensity 2 HVLL"}, {"code": "LE1482", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.53 Sensity 2 PNX HVLL"}, {"code": "LE1481", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.50 Sensity 2 HVLL"}, {"code": "LE1475", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.74 HVLL UV Protection"}, {"code": "LE1474", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.67 HVLL UV Protection"}, {"code": "LE1473", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.60 HVLL UV Protection"}, {"code": "LE1472", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.53 PNX HVLL UV Protection"}, {"code": "LE1471", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Summit 1.50 HVLL UV Protection"}, {"code": "LE1470", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.67 Sensity 2 HVLL"}, {"code": "LE1469", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.60 Sensity 2 HVLL"}, {"code": "LE1468", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.53 Sensity 2 PNX HVLL"}, {"code": "LE1467", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.50 Sensity 2 HVLL"}, {"code": "LE1461", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.74 HVLL UV Protection"}, {"code": "LE1460", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.67 HVLL UV Protection"}, {"code": "LE1459", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.60 HVLL UV Protection"}, {"code": "LE1458", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.53 PNX HVLL UV Protection"}, {"code": "LE1457", "type": "Ophthalmic Lens", "description": "Hoyalux Dynamic Premium 1.50 HVLL UV Protection"}, {"code": "LE1456", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.67 Sensity 2 HVLL"}, {"code": "LE1455", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.60 Sensity 2 HVLL"}, {"code": "LE1454", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.53 Sensity 2 PNX HVLL"}, {"code": "LE1453", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.50 Sensity 2 HVLL"}, {"code": "LE1447", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.74 HVLL UV Protection"}, {"code": "LE1446", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.67 HVLL UV Protection"}, {"code": "LE1445", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.60 HVLL UV Protection"}, {"code": "LE1444", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.53 PNX HVLL UV Protection"}, {"code": "LE1443", "type": "Ophthalmic Lens", "description": "Hoyalux LifeStyle Balansis 1.50 HVLL UV Protection"}, {"code": "LE1369", "type": "Ophthalmic Lens", "description": "Pentax  1.60 (STK) As INC Blue"}, {"code": "LE1364", "type": "Ophthalmic Lens", "description": "Pentax 1.55 (RX) AS Sensity (Grey)"}, {"code": "LE1360", "type": "Ophthalmic Lens", "description": "Pentax 1.60 (RX) AS INC/ INC Blue"}, {"code": "LE1359", "type": "Ophthalmic Lens", "description": "Pentax 1.55 (STK) AS INC"}, {"code": "LE1358", "type": "Ophthalmic Lens", "description": "Pentax 1.74 (RX) AS  INC / INC blue"}, {"code": "LE1357", "type": "Ophthalmic Lens", "description": "Pentax 1.67 (RX) AS INC / INC Blue"}, {"code": "LE1356", "type": "Ophthalmic Lens", "description": "Pentax 1.67 (STK) As INC"}, {"code": "LE1346", "type": "Ophthalmic Lens", "description": "Pentax 1.67 (STK) As INC Blue"}, {"code": "LE1340", "type": "Ophthalmic Lens", "description": "Pentax 1.60 (STK) As INC"}, {"code": "LE1322", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.67 HVLL UV Protection"}, {"code": "LE1317", "type": "Ophthalmic Lens", "description": "Hoya Nulux Classic (RX) 1.60 HVLL UV Protection"}, {"code": "LE0591", "type": "Ophthalmic Lens", "description": "Hoya Tint Col (Full/Gradient)"}];
+
+// Explicit header→item mapping for known Hoya invoice header patterns
+const HEADER_MAP=[
+  {pattern:/nulux\s+16[0o]\s+.*meiryo.*sen/i, code:'LE2971'},
+  {pattern:/nulux\s+16[0o]\s+.*meiryo/i, code:'LE2971'},
+  {pattern:/nulux\s+167\s+.*meiryo/i, code:'LE2975'},
+  {pattern:/nulux\s+174\s+.*meiryo/i, code:'LE2911'},
+  {pattern:/nulux\s+153\s+.*meiryo.*sen/i, code:'LE1559'},
+  {pattern:/nulux\s+153\s+.*meiryo/i, code:'LE2975'},
+  {pattern:/nulux\s+16[0o]\s+.*fcontrol/i, code:'LE2133'},
+  {pattern:/nulux\s+167\s+.*fcontrol/i, code:'LE2134'},
+  {pattern:/nulux\s+174\s+.*fcontrol/i, code:'LE2135'},
+  {pattern:/nulux\s+16[0o]\s+.*uvc/i, code:'LE1572'},
+  {pattern:/nulux\s+167\s+.*uvc/i, code:'LE1573'},
+  {pattern:/nulux\s+174\s+.*uvc/i, code:'LE1574'},
+  {pattern:/nulux\s+16[0o]\s+.*slgy/i, code:'LE1568'},
+  {pattern:/nulux\s+15[0o]\s+.*slgy/i, code:'LE1566'},
+  {pattern:/nulux\s+16[0o]\s+hvll/i, code:'LE1317'},
+  {pattern:/nulux\s+167\s+hvll/i, code:'LE1322'},
+  {pattern:/sync\s+3?\s+pro\s+16[0o]\s+.*meiryo.*sen/i, code:'LE2893'},
+  {pattern:/sync\s+3?\s+pro\s+16[0o]\s+.*meiryo/i, code:'LE2893'},
+  {pattern:/sync\s+3?\s+pro\s+16[0o]\s+.*sen/i, code:'LE1993'},
+  {pattern:/sync\s+3?\s+pro\s+16[0o]/i, code:'LE1996'},
+  {pattern:/sync\s+3?\s+pro\s+15[0o]\s+.*sen/i, code:'LE1999'},
+  {pattern:/sync\s+3?\s+pro\s+15[0o]/i, code:'LE1994'},
+  {pattern:/sync\s+3?\s+pro\s+153/i, code:'LE1995'},
+  {pattern:/sync\s+3?\s+pro\s+167\s+.*sen/i, code:'LE2001'},
+  {pattern:/sync\s+3?\s+pro\s+167/i, code:'LE1997'},
+  {pattern:/sync\s+3?\s+pro\s+174/i, code:'LE1998'},
+  {pattern:/sync\s+3?\s+16[0o]/i, code:'LE2004'},
+  {pattern:/sync\s+3?\s+167/i, code:'LE2005'},
+  {pattern:/myself\s+profile\s+153.*meiryo/i, code:'LE2685'},
+  {pattern:/myself\s+profile\s+153.*sen/i, code:'LE2400'},
+  {pattern:/myself\s+profile\s+153/i, code:'LE2395'},
+  {pattern:/myself\s+profile\s+16[0o].*sen/i, code:'LE2401'},
+  {pattern:/myself\s+profile\s+16[0o]/i, code:'LE2396'},
+  {pattern:/myself\s+profile\s+167.*sen/i, code:'LE2402'},
+  {pattern:/myself\s+profile\s+167/i, code:'LE2397'},
+  {pattern:/myself\s+profile\s+174/i, code:'LE2398'},
+  {pattern:/myself\s+profile\s+15[0o].*sen/i, code:'LE2399'},
+  {pattern:/myself\s+profile\s+15[0o]/i, code:'LE2394'},
+  {pattern:/lifestyle\s+4\s+153.*sen/i, code:'LE2413'},
+  {pattern:/lifestyle\s+4\s+153/i, code:'LE2408'},
+  {pattern:/lifestyle\s+4\s+15[0o].*sen/i, code:'LE2412'},
+  {pattern:/lifestyle\s+4\s+15[0o]/i, code:'LE2407'},
+  {pattern:/lifestyle\s+4\s+16[0o].*sen/i, code:'LE2414'},
+  {pattern:/lifestyle\s+4\s+16[0o]/i, code:'LE2409'},
+  {pattern:/lifestyle\s+4\s+167.*sen/i, code:'LE2415'},
+  {pattern:/lifestyle\s+4\s+167/i, code:'LE2410'},
+  {pattern:/workstyle\s+business\s+16[0o]/i, code:'LE1505'},
+  {pattern:/workstyle\s+business\s+167/i, code:'LE1506'},
+  {pattern:/workstyle\s+business\s+15[0o]/i, code:'LE1503'},
+  {pattern:/workstyle\s+business\s+153/i, code:'LE1504'},
+  {pattern:/supereader.*16[0o]/i, code:'LE1510'},
+  {pattern:/supereader.*167/i, code:'LE1511'},
+  {pattern:/supereader.*15[0o]/i, code:'LE1509'},
+  {pattern:/hilux.*15[0o].*slgy/i, code:'LE1566'},
+  {pattern:/hilux.*15[0o]/i, code:'LE1562'},
+  {pattern:/hilux.*16[0o].*slgy/i, code:'LE1568'},
+  {pattern:/hilux.*16[0o]/i, code:'LE1564'},
+  {pattern:/hilux.*167/i, code:'LE1565'},
+  {pattern:/pentax.*155.*inc.?blue/i, code:'LE2091'},
+  {pattern:/pentax.*155.*inc/i, code:'LE1359'},
+  {pattern:/pentax.*16[0o].*inc.?blue/i, code:'LE1369'},
+  {pattern:/pentax.*16[0o].*inc/i, code:'LE1340'},
+  {pattern:/pentax.*167.*inc/i, code:'LE1356'},
+  {pattern:/pentax.*174/i, code:'LE2490'},
+  {pattern:/miyosmart.*sen.*full/i, code:'LE2420'},
+  {pattern:/miyosmart.*full/i, code:'LE2151'},
+  {pattern:/miyosmart.*sen/i, code:'LE1759'},
+  {pattern:/miyosmart/i, code:'LE2150'},
+];
+
+function matchFromHeader(headerText){
+  if(!headerText)return null;
+  const h=headerText.toLowerCase();
+  for(const m of HEADER_MAP){
+    if(m.pattern.test(h)){
+      return HOYA_ITEMS.find(i=>i.code===m.code)||null;
+    }
+  }
+  // Fallback fuzzy
+  return fuzzyMatch(headerText);
+}
+
+function fuzzyMatch(query){
+  if(!query)return null;
+  const q=query.toLowerCase();
+  const scored=HOYA_ITEMS.map(item=>{
+    const d=item.description.toLowerCase();
+    let score=0;
+    const idx=q.match(/1\.\d{2}/);
+    if(idx&&d.includes(idx[0]))score+=8;
+    const numIdx=q.match(/\b1[567][034]\b/);
+    if(numIdx){
+      const mapped={'155':'1.55','150':'1.50','160':'1.60','167':'1.67','174':'1.74','153':'1.53','159':'1.59'};
+      const v=mapped[numIdx[0]];
+      if(v&&d.includes(v))score+=6;
+    }
+    if(q.includes('nulux')&&d.includes('nulux'))score+=6;
+    if(q.includes('hilux')&&d.includes('hilux'))score+=6;
+    if(q.includes('sync')&&d.includes('sync'))score+=6;
+    if(q.includes('myself')&&!q.includes('profile')&&d.includes('myself')&&!d.includes('profile'))score+=6;
+    if(q.includes('myself')&&q.includes('profile')&&d.includes('profile'))score+=8;
+    if(q.includes('lifestyle')&&d.includes('lifestyle'))score+=6;
+    if(q.includes('pentax')&&d.includes('pentax'))score+=6;
+    if(q.includes('workstyle')&&d.includes('workstyle'))score+=6;
+    if(q.includes('supereader')&&d.includes('supereader'))score+=6;
+    if(q.includes('miyosmart')&&d.includes('miyosmart'))score+=8;
+    if(q.includes('stk')&&d.includes('stk'))score+=4;
+    if((q.includes('rx')||q.includes('r x'))&&d.includes('rx'))score+=3;
+    if(q.includes('fcontrol')&&d.includes('full control'))score+=4;
+    if(q.includes('meiryo')&&(d.includes('meiryo')||d.includes('(26)')))score+=4;
+    if(q.includes('uvc')&&(d.includes('uvc')||d.includes('uv')))score+=3;
+    if(q.includes('sen')&&d.includes('sensity'))score+=3;
+    if(q.includes('sensity')&&d.includes('sensity'))score+=4;
+    return{...item,score};
+  }).filter(i=>i.score>=6).sort((a,b)=>b.score-a.score);
+  return scored[0]||null;
+}
+
+let uploadedFiles=[],invoiceGroups=[],currentIdx=0;
+
+const fileInput=document.getElementById('fileInput');
+const uploadZone=document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag');if(e.dataTransfer.files.length)handleFiles(Array.from(e.dataTransfer.files))});
+fileInput.addEventListener('change',e=>{if(e.target.files.length)handleFiles(Array.from(e.target.files))});
+
+function handleFiles(files){
+  uploadedFiles=files.filter(f=>f.type.startsWith('image/')||f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));
+  if(!uploadedFiles.length){showError('Please select image or PDF files.');return}
+  hideError();
+  const pdfs=uploadedFiles.filter(f=>isPdf(f)).length;
+  const imgs=uploadedFiles.filter(f=>!isPdf(f)).length;
+  document.getElementById('fileQueue').style.display='block';
+  document.getElementById('fqTitle').textContent=`${uploadedFiles.length} file${uploadedFiles.length!==1?'s':''} selected`;
+  const parts=[];if(pdfs)parts.push(`${pdfs} PDF${pdfs!==1?'s':''}`);if(imgs)parts.push(`${imgs} image${imgs!==1?'s':''}`);
+  document.getElementById('fqSub').textContent=parts.join(' + ')+' — pages grouped by invoice number automatically';
+  document.getElementById('analyseBtn').disabled=false;
+  document.getElementById('fileList').innerHTML=uploadedFiles.map(f=>`
+    <div class="file-item">
+      <span>${isPdf(f)?'📄':'🖼'}</span>
+      <span class="fi-name">${f.name}</span>
+      <span class="fi-size">${(f.size/1024).toFixed(0)} KB</span>
+      <span class="fi-type ${isPdf(f)?'fi-pdf':'fi-img'}">${isPdf(f)?'PDF':'Image'}</span>
+    </div>`).join('');
+}
+
+function isPdf(f){return f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf')}
+
+async function pdfToImages(file){
+  const ab=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+  const images=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const vp=page.getViewport({scale:2.0});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    images.push({base64:canvas.toDataURL('image/jpeg',0.92).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
+  }
+  return images;
+}
+
+async function processAll(){
+  hideError();
+  if(!getApiKey()){
+    document.getElementById('apiKeySection').style.display='block';
+    showError('Please enter your API key first.');
+    return;
+  }
+  document.getElementById('analyseBtn').disabled=true;
+  document.getElementById('btnSpinner').style.display='inline-block';
+  document.getElementById('fileQueue').style.display='none';
+  document.getElementById('uploadZone').style.display='none';
+  document.getElementById('progressWrap').style.display='block';
+
+  const allPages=[];
+  for(let i=0;i<uploadedFiles.length;i++){
+    const file=uploadedFiles[i];
+    setProgress(i,uploadedFiles.length,`Converting ${file.name}...`,'Step 1/2: Preparing files');
+    try{
+      if(isPdf(file)){const imgs=await pdfToImages(file);imgs.forEach(img=>allPages.push({...img,sourceFile:file.name}))}
+      else{const{base64,mimeType}=await toBase64(file);allPages.push({base64,mimeType,pageNum:1,totalPages:1,sourceFile:file.name})}
+    }catch(err){allPages.push({base64:null,mimeType:'image/jpeg',pageNum:1,totalPages:1,sourceFile:file.name,error:err.message})}
+  }
+
+  const pageResults=[];
+  for(let i=0;i<allPages.length;i++){
+    const page=allPages[i];
+    setProgress(i,allPages.length,`Analysing page ${i+1} of ${allPages.length}...`,'Step 2/2: Reading invoices');
+    if(page.error||!page.base64){pageResults.push({invoice_no:`ERR_${i}`,page_no:1,total_pages:1,error:page.error,groups:[],grand_total:null,is_credit_note:false});continue}
+    try{
+      const result=await extractPage(page.base64,page.mimeType);
+      result.sourceFile=page.sourceFile;
+      pageResults.push(result);
+    }catch(err){pageResults.push({invoice_no:`ERR_${i}`,page_no:page.pageNum,error:err.message,groups:[],grand_total:null,is_credit_note:false})}
+  }
+
+  invoiceGroups=buildGroups(pageResults);
+  currentIdx=0;
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('invoiceViewer').style.display='block';
+  renderInvoice();
+}
+
+function setProgress(done,total,detail,label){
+  document.getElementById('progLabel').textContent=label||'Analysing...';
+  document.getElementById('progCount').textContent=total>0?`${done} / ${total}`:'';
+  document.getElementById('progFill').style.width=total>0?`${(done/total)*100}%`:'0%';
+  document.getElementById('progDetail').textContent=detail;
+}
+
+async function extractPage(base64,mimeType){
+  const prompt=`This is a page from a Hoya Lens (S) Pte Ltd document for Eyecare People, Singapore.
+
+CRITICAL RULE: A Hoya invoice has MAXIMUM 2 lenses total (one R lens and one L lens). Everything else is a shared cost.
+
+Extract as JSON (ONLY valid JSON, no other text):
+{
+  "invoice_no": "e.g. IH26024744 or CH26000524",
+  "page_no": number,
+  "total_pages": number,
+  "invoice_date": "as printed",
+  "doc_type": "TAX INVOICE" or "CREDIT NOTE",
+  "job_ref": "second line at bottom-left — see rules below",
+  "grand_total": number or null,
+  "no1_header": "product description header for NO 1 e.g. STK - NULUX 160 FCONTROL FCONTROL PD68.5",
+  "no2_header": "product description header for NO 2 if present, else null",
+  "r_amount": number or null,
+  "l_amount": number or null,
+  "shared_costs": [{"desc": "description", "amount": number}]
+}
+
+RULES:
+1. no1_header: Full product description line next to NO 1. Lens product name only.
+2. no2_header: Product description line next to NO 2 if present. null if only one NO.
+3. r_amount: AMOUNT (S$) of the line starting with "R " — right lens. null if not on this page.
+4. l_amount: AMOUNT (S$) of the line starting with "L " — left lens. null if not on this page.
+5. shared_costs: ALL lines that are NOT the R or L lens lines — this includes edging, mounting, METS, Full Control, Full Tinting, coatings. Lines on page 2 with no NO number are ALSO shared costs. Use AMOUNT column value even if DISC% is 100%.
+6. grand_total: TOTAL AMOUNT after GST bottom right. null if not on this page.
+7. job_ref: Bottom-left has TWO lines. Line 1 is a long numeric code (DO NOT USE). Line 2 is the actual job ref with letters e.g. "0334 N150 O/LINBERDG" (USE THIS ONE).`;
+
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1500,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mimeType,data:base64}},{type:'text',text:prompt}]}]})
+  });
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||`API error ${resp.status}`)}
+  const data=await resp.json();
+  const raw=data.content[0].text;
+  const match=raw.match(/\{[\s\S]*\}/);
+  return JSON.parse(match?match[0]:raw);
+}
+
+function buildGroups(pages){
+  const map={};
+  pages.forEach(p=>{
+    const key=(p.invoice_no||'UNKNOWN').trim().toUpperCase();
+    if(!map[key])map[key]={invoiceNo:key,pages:[],grandTotal:null,jobRef:null,date:null,
+      no1Header:null,no2Header:null,rAmt:0,lAmt:0,sharedCosts:[],isCreditNote:false};
+    map[key].pages.push(p);
+    if(p.grand_total!=null)map[key].grandTotal=p.grand_total;
+    if(p.job_ref&&p.job_ref.trim())map[key].jobRef=p.job_ref.trim();
+    if(p.invoice_date)map[key].date=p.invoice_date;
+    if(p.doc_type&&p.doc_type.includes('CREDIT'))map[key].isCreditNote=true;
+    if(p.no1_header&&!map[key].no1Header)map[key].no1Header=p.no1_header;
+    if(p.no2_header&&!map[key].no2Header)map[key].no2Header=p.no2_header;
+    if(p.r_amount!=null&&p.r_amount>0)map[key].rAmt=p.r_amount;
+    if(p.l_amount!=null&&p.l_amount>0)map[key].lAmt=p.l_amount;
+    if(p.shared_costs)p.shared_costs.forEach(c=>{if((c.amount||0)>0)map[key].sharedCosts.push(c)});
+  });
+
+  return Object.values(map).map(inv=>{
+    inv.pages.sort((a,b)=>(a.page_no||1)-(b.page_no||1));
+    if(inv.isCreditNote)return inv;
+
+    const totalShared=inv.sharedCosts.reduce((s,c)=>s+(c.amount||0),0);
+    const sharedPerLens=totalShared/2;
+    const hasR=inv.rAmt>0;
+    const hasL=inv.lAmt>0;
+    const totalLenses=(hasR?1:0)+(hasL?1:0)||1;
+    const isSingle=totalLenses===1;
+
+    // Zero-value invoice
+    const isZeroInv=inv.grandTotal===0||(inv.grandTotal!=null&&inv.grandTotal<0.01);
+    if(isZeroInv){
+      inv.isZeroValue=true;
+      inv.fwLines=[{header:inv.no1Header||'',unitPrice:0,qty:totalLenses,
+        isSingle,rAmt:0,lAmt:0,sharedCost:0,sharedPerLens:0,
+        match:matchFromHeader(inv.no1Header||''),isZero:true,useGrandTotal:false}];
+      return inv;
+    }
+
+    // Same vs different lens using 75% header rule
+    const sameLens=!inv.no2Header||headersSameLens(inv.no1Header||'',inv.no2Header||'');
+
+    if(sameLens){
+      const qty=isSingle?1:2;
+      const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/qty)*100)/100:0;
+      inv.fwLines=[{header:inv.no1Header,rAmt:inv.rAmt,lAmt:inv.lAmt,
+        sharedCost:totalShared,sharedPerLens,unitPrice,qty,isSingle,
+        match:matchFromHeader(inv.no1Header),useGrandTotal:true}];
+    } else {
+      // Different lenses — per-lens formula
+      const r_unit=Math.round(((inv.rAmt+sharedPerLens)*1.09)*100)/100;
+      const l_unit=Math.round(((inv.lAmt+sharedPerLens)*1.09)*100)/100;
+      inv.fwLines=[
+        {header:inv.no1Header,rAmt:inv.rAmt,lAmt:0,sharedCost:totalShared,sharedPerLens,
+          unitPrice:r_unit,qty:1,isSingle:false,match:matchFromHeader(inv.no1Header),useGrandTotal:false},
+        {header:inv.no2Header,rAmt:0,lAmt:inv.lAmt,sharedCost:totalShared,sharedPerLens,
+          unitPrice:l_unit,qty:1,isSingle:false,match:matchFromHeader(inv.no2Header),useGrandTotal:false}
+      ];
+    }
+
+    // Verification
+    if(inv.grandTotal&&inv.fwLines){
+      const calcTotal=inv.fwLines.reduce((s,l)=>s+(l.unitPrice*l.qty),0);
+      inv.calcTotal=Math.round(calcTotal*100)/100;
+      inv.verifyDiff=Math.abs(calcTotal-inv.grandTotal);
+      inv.verifyOk=inv.verifyDiff<=0.10;
+    }
+
+    return inv;
+  });
+}
+
+function normaliseHeader(h){
+  if(!h)return '';
+  // Take first 75% of the header — strips trailing Rx/fitting codes
+  const trimmed=h.trim();
+  const cutoff=Math.floor(trimmed.length*0.75);
+  return trimmed.slice(0,cutoff).toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+function headersSameLens(h1,h2){
+  if(!h1||!h2)return false;
+  const n1=normaliseHeader(h1);
+  const n2=normaliseHeader(h2);
+  if(n1===n2)return true;
+  // Compare first 75% of the normalised string
+  const minLen=Math.min(n1.length,n2.length);
+  const compareLen=Math.floor(minLen*0.75);
+  if(compareLen<5)return false;
+  return n1.slice(0,compareLen)===n2.slice(0,compareLen);
+}
+
+function renderInvoice(){
+  const inv=invoiceGroups[currentIdx];
+  const total=invoiceGroups.length;
+  document.getElementById('navMain').textContent=`Invoice ${currentIdx+1} of ${total}`;
+  document.getElementById('navSub').textContent=inv.invoiceNo;
+  document.getElementById('prevBtn').disabled=currentIdx===0;
+  const nextBtn=document.getElementById('nextBtn');
+  if(currentIdx===total-1){nextBtn.textContent='✓ All Done';nextBtn.className='nav-btn done'}
+  else{nextBtn.textContent='Next →';nextBtn.className='nav-btn'}
+  nextBtn.disabled=false;
+
+  if(inv.isCreditNote){
+    document.getElementById('invoiceCard').innerHTML=`
+      <div class="credit-banner">
+        <span style="color:white;font-size:13px;font-weight:600">Hoya Lens (S) Pte Ltd</span>
+        <span style="background:rgba(255,255,255,.15);color:white;font-size:11px;padding:3px 10px;border-radius:99px">CREDIT NOTE</span>
+      </div>
+      <div class="credit-note-warning">
+        <h3>⚠ Credit Note — Not a Tax Invoice</h3>
+        <p><strong>${inv.invoiceNo}</strong> dated ${inv.date||'—'} is a Credit Note.<br>
+        Credit Notes are not entered as Received Orders in Frontwave.<br>
+        Handle separately with your accounts process.</p>
+      </div>`;
+    return;
+  }
+
+  const hasNoMatch=inv.fwLines&&inv.fwLines.some(l=>!l.match);
+
+  let html=`
+    <div class="supplier-banner">
+      <span class="supplier-name">Hoya Lens (S) Pte Ltd</span>
+      <span class="supplier-badge">${inv.pages.length} page${inv.pages.length!==1?'s':''} · ${inv.fwLines?inv.fwLines.length:0} Frontwave line${inv.fwLines&&inv.fwLines.length!==1?'s':''}</span>
+    </div>
+    <div>
+      <div class="field-row">
+        <span class="field-label">Name</span>
+        <span class="field-value">Hoya Lens (S) Pte Ltd</span>
+        <button class="copy-btn" onclick="copyText(this,'Hoya Lens (S) Pte Ltd')">Copy</button>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Invoice Date</span>
+        <span class="field-value mono">${inv.date||'—'}</span>
+        ${inv.date?`<button class="copy-btn" onclick="copyText(this,'${esc(inv.date)}')">Copy</button>`:'<span style="font-size:12px;color:var(--danger)">Not found</span>'}
+      </div>
+      <div class="field-row">
+        <span class="field-label">Invoice No</span>
+        <span class="field-value mono">${inv.invoiceNo}</span>
+        <button class="copy-btn" onclick="copyText(this,'${inv.invoiceNo}')">Copy</button>
+      </div>
+      <div class="field-row">
+        <span class="field-label">Remarks</span>
+        <span class="field-value mono">${inv.jobRef||'<span style="color:var(--ink3);font-style:italic;font-family:var(--sans)">Not found</span>'}</span>
+        ${inv.jobRef?`<button class="copy-btn" onclick="copyText(this,'${esc(inv.jobRef)}')">Copy</button>`:''}
+      </div>
+    </div>`;
+
+  if(inv.isZeroValue){
+    html+='<div style="padding:32px 24px;text-align:center">'
+      +'<div style="font-size:32px;margin-bottom:12px">⏭</div>'
+      +'<div style="font-size:15px;font-weight:600;color:var(--ink2);margin-bottom:6px">Zero Value Invoice</div>'
+      +'<div style="font-size:13px;color:var(--ink3)">Grand Total is $0.00 — warranty or replacement order.<br>No Frontwave entry required. Move to next invoice.</div>'
+      +'</div>';
+  } else if(!inv.fwLines||inv.fwLines.length===0){
+    html+=`<div style="padding:24px;text-align:center;color:var(--ink3);font-size:13px">No lens lines extracted — check invoice is clear</div>`;
+  } else {
+    inv.fwLines.forEach((line,i)=>{
+      const m=line.match;
+      const mClass=m?(m.score>=14?'match-high':'match-med'):'match-low';
+      const mLabel=m?(m.score>=14?'High':'Med'):'No match';
+
+      html+=`
+        <div class="section-divider">
+          <span class="section-label">Line Item ${i+1}${inv.fwLines.length>1?' of '+inv.fwLines.length:''}${line.isSingle?' — Single Lens':''}</span>
+          <span class="match-badge ${mClass}">${mLabel} match</span>
+        </div>
+        <div>
+          <div class="field-row">
+            <span class="field-label">Item Code</span>
+            <span class="field-value mono">${m?m.code:'<span style="color:var(--danger)">—</span>'}</span>
+            ${m?`<button class="copy-btn" onclick="copyText(this,'${m.code}')">Copy</button>`:'<span style="font-size:12px;color:var(--danger)">Verify manually</span>'}
+          </div>
+          <div class="field-row">
+            <span class="field-label">Description</span>
+            <span class="field-value" style="font-size:13px">${m?m.description:'<span style="color:var(--danger)">Not matched — verify in Frontwave</span>'}</span>
+            ${m?`<button class="copy-btn" onclick="copyText(this,'${esc(m.description)}')">Copy</button>`:''}
+          </div>
+          <div class="field-row" style="background:#FAFAF8">
+            <span class="field-label" style="color:var(--ink3);font-size:10px">Invoice</span>
+            <span class="field-value" style="font-size:12px;color:var(--ink3)">${line.header||'—'}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Quantity</span>
+            <span class="field-value mono" style="font-size:18px;font-weight:700">${line.isSingle?1:2}</span>
+            <button class="copy-btn" onclick="copyText(this,line.isSingle?'1':'2')">Copy</button>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Unit Price</span>
+            <span class="field-value mono" style="font-size:18px;font-weight:700">${line.unitPrice.toFixed(2)}</span>
+            <button class="copy-btn" onclick="copyText(this,'${line.unitPrice.toFixed(2)}')">Copy</button>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Tax Code</span>
+            <span class="field-value mono" style="color:var(--ink3)">TX <span style="font-size:11px;font-family:var(--sans)">(type manually)</span></span>
+          </div>
+        </div>
+        <div class="verify-box">
+          <div class="verify-title">Calculation</div>
+          ${line.isZero?`<div class="verify-row"><span>Zero value — warranty/replacement</span></div><div class="verify-total"><span>Unit Price</span><span style="font-family:var(--mono)">$0.00</span></div>`:line.useGrandTotal?`<div class="verify-row"><span>Grand Total (inc GST)</span><span style="font-family:var(--mono);font-size:12px">$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'}</span></div><div class="verify-row"><span>÷ ${line.qty} lens${line.qty!==1?'es':''}</span></div><div class="verify-total"><span>Unit Price</span><span style="font-family:var(--mono)">$${line.unitPrice.toFixed(2)}</span></div>`:`<div class="verify-row"><span>R lens amount</span><span style="font-family:var(--mono);font-size:12px">$${line.rAmt.toFixed(2)}</span></div><div class="verify-row"><span>Shared costs ÷ 2</span><span style="font-family:var(--mono);font-size:12px">$${line.sharedPerLens.toFixed(2)}</span></div><hr class="verify-divider"><div class="verify-row"><span>Pre-GST</span><span style="font-family:var(--mono);font-size:12px">$${(line.rAmt+line.sharedPerLens).toFixed(2)}</span></div><div class="verify-total"><span>Unit Price</span><span style="font-family:var(--mono)">$${line.unitPrice.toFixed(2)}</span></div>`}
+        `;
+    });
+  }
+
+  // Grand total + strict verification
+  if(inv.isZeroValue){
+    // Zero value — no entry needed, already handled above
+  } else if(inv.grandTotal){
+    html+=`<div class="grand-total-bar">
+      <div><div class="gt-label">Grand Total (inc GST)</div></div>
+      <div style="text-align:right">
+        <div class="gt-amount">S$${inv.grandTotal.toFixed(2)}</div>
+      </div>
+    </div>`;
+
+    if(inv.fwLines&&inv.fwLines.length>0){
+      const calcTotal=inv.fwLines.reduce((s,l)=>s+(l.unitPrice*l.qty),0);
+      const diff=Math.abs(calcTotal-inv.grandTotal);
+      const verified=diff<=0.10;
+      if(verified){
+        html+='<div class="verify-box"><div class="verify-check verify-ok">✓ Verified — S$'+calcTotal.toFixed(2)+' matches Grand Total S$'+inv.grandTotal.toFixed(2)+'</div></div>';
+      } else {
+        // MISMATCH — add warning and mark invoice as blocked
+        inv.blocked=true;
+        html+='<div class="verify-box"><div class="verify-check verify-err" style="font-size:13px;padding:14px 16px;line-height:1.6">'
+          +'<strong>✗ MISMATCH — Do NOT enter this invoice</strong><br>'
+          +'Calculated S$'+calcTotal.toFixed(2)+' does not match Grand Total S$'+inv.grandTotal.toFixed(2)+' (difference S$'+diff.toFixed(2)+')<br>'
+          +'<span style="font-weight:400">Check the original PDF carefully — a line may have been missed or misread by the app.</span>'
+          +'</div></div>';
+      }
+    }
+  } else {
+    html+=`<div class="gt-missing">⚠ Grand Total not found — ensure all pages were uploaded</div>`;
+  }
+
+  if(hasNoMatch&&!inv.isZeroValue)html+=`<div class="warn-banner">⚠ One or more items could not be matched — verify item codes in Frontwave before entering</div>`;
+
+  document.getElementById('invoiceCard').innerHTML=html;
+  // Apply blocked class if verification failed
+  if(inv.blocked){
+    document.getElementById('invoiceCard').classList.add('blocked');
+  } else {
+    document.getElementById('invoiceCard').classList.remove('blocked');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function navigate(dir){
+  const newIdx=currentIdx+dir;
+  if(newIdx<0)return;
+  if(newIdx>=invoiceGroups.length){showToast('All invoices processed ✓');return}
+  currentIdx=newIdx;renderInvoice();
+}
+
+function copyText(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.textContent;btn.textContent='Copied ✓';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('copied')},1500);
+  });
+}
+
+function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;')}
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res({base64:e.target.result.split(',')[1],mimeType:file.type});r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file)})}
+function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block'}
+function hideError(){document.getElementById('errorBox').style.display='none'}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
+function initApp(){
+  const saved = localStorage.getItem('ep_hoya_api_key');
+  if(!saved||saved.trim()===''){
+    document.getElementById('apiKeySection').style.display='block';
+  }
+}
+
+function saveApiKeyFromInput(){
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if(!key||!key.startsWith('sk-ant')){
+    alert('Please enter a valid Anthropic API key starting with sk-ant');
+    return;
+  }
+  saveApiKey(key);
+  document.getElementById('apiKeySection').style.display='none';
+  showToast('API key saved — you won\'t need to enter it again on this browser');
+}
+
+function resetAll(){uploadedFiles=[];invoiceGroups=[];currentIdx=0;document.getElementById('uploadZone').style.display='block';document.getElementById('fileQueue').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('invoiceViewer').style.display='none';document.getElementById('fileInput').value='';hideError()}
+
+// Init on load
+initApp();
+</script>
+</body>
+</html>
