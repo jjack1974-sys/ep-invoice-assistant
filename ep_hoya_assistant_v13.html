@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EP Invoice Assistant — Hoya</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #F5F4F0;
+  --white: #FFFFFF;
+  --ink: #1C1C1C;
+  --ink2: #4A4A4A;
+  --ink3: #9A9A9A;
+  --rule: #E2E0D8;
+  --accent: #1C3557;
+  --accent-light: #EAF0F7;
+  --success: #1A5C35;
+  --success-bg: #E8F4EE;
+  --success-border: #A8D8BA;
+  --warning: #7A4800;
+  --warning-bg: #FFF5E6;
+  --danger: #8B1A1A;
+  --danger-bg: #FDF0F0;
+  --danger-border: #F0BBBB;
+  --hoya: #B82020;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* ── Header ── */
+.header {
+  background: var(--accent);
+  padding: 0 28px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.ep-mark {
+  width: 28px; height: 28px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 600; font-size: 12px; letter-spacing: -0.3px;
+}
+.header h1 { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.9); letter-spacing: 0.1px; }
+.header h1 span { color: rgba(255,255,255,0.5); font-weight: 300; }
+.v-badge {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  padding: 2px 8px; border-radius: 3px;
+}
+
+/* ── Main ── */
+.main { max-width: 720px; margin: 0 auto; padding: 24px 20px; }
+
+/* ── API Key setup ── */
+#apiKeySection {
+  display: none;
+  background: var(--warning-bg);
+  border: 1px solid #F0C878;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+}
+#apiKeySection .setup-label { font-size: 12px; font-weight: 600; color: var(--warning); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+#apiKeySection .setup-row { display: flex; gap: 8px; }
+#apiKeyInput {
+  flex: 1; border: 1px solid #F0C878; border-radius: 5px;
+  padding: 7px 10px; font-family: var(--mono); font-size: 11px;
+  background: white; outline: none; color: var(--ink);
+}
+#apiKeyInput:focus { border-color: var(--accent); }
+.btn-save-key {
+  background: var(--accent); color: white; border: none;
+  border-radius: 5px; padding: 7px 14px; font-size: 12px;
+  font-weight: 500; cursor: pointer; font-family: var(--sans);
+  white-space: nowrap;
+}
+.setup-hint { font-size: 11px; color: var(--ink3); margin-top: 6px; }
+
+/* ── Upload zone ── */
+.upload-zone {
+  border: 2px dashed var(--rule);
+  border-radius: 10px;
+  padding: 40px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  background: var(--white);
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-light); }
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 28px; margin-bottom: 10px; }
+.upload-zone h3 { font-size: 14px; font-weight: 500; margin-bottom: 5px; color: var(--ink); }
+.upload-zone p { font-size: 12px; color: var(--ink3); line-height: 1.6; }
+.upload-zone p strong { color: var(--ink2); }
+
+/* ── File queue ── */
+.file-queue { background: var(--white); border: 1px solid var(--rule); border-radius: 10px; margin-top: 12px; overflow: hidden; display: none; }
+.fq-header { padding: 12px 16px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.fq-title { font-size: 13px; font-weight: 500; }
+.fq-sub { font-size: 11px; color: var(--ink3); margin-top: 1px; }
+.btn-analyse {
+  background: var(--accent); color: white; border: none;
+  border-radius: 6px; padding: 8px 18px;
+  font-family: var(--sans); font-size: 12px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; gap: 7px;
+  transition: opacity 0.15s; white-space: nowrap; flex-shrink: 0;
+}
+.btn-analyse:hover:not(:disabled) { opacity: 0.88; }
+.btn-analyse:disabled { opacity: 0.35; cursor: not-allowed; }
+.file-list { padding: 2px 0; }
+.file-item { padding: 8px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--rule); font-size: 12px; }
+.file-item:last-child { border-bottom: none; }
+.fi-name { flex: 1; font-family: var(--mono); font-size: 11px; color: var(--ink2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fi-size { font-size: 11px; color: var(--ink3); flex-shrink: 0; }
+.fi-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 3px; flex-shrink: 0; letter-spacing: 0.3px; }
+.fi-pdf { background: #FEE8E8; color: #8B1A1A; }
+.fi-img { background: var(--accent-light); color: var(--accent); }
+
+/* ── Progress ── */
+.progress-wrap { background: var(--white); border: 1px solid var(--rule); border-radius: 10px; padding: 18px 20px; margin-top: 12px; display: none; }
+.prog-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; }
+.prog-label { font-weight: 500; color: var(--ink2); }
+.prog-count { color: var(--ink3); font-family: var(--mono); }
+.prog-track { height: 3px; background: var(--rule); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.3s ease; width: 0%; }
+.prog-detail { font-size: 11px; color: var(--ink3); margin-top: 7px; }
+
+/* ── Invoice viewer ── */
+.invoice-viewer { display: none; margin-top: 16px; }
+
+/* Nav */
+.nav-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.nav-btn {
+  background: var(--white); border: 1px solid var(--rule);
+  border-radius: 6px; padding: 7px 16px;
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  cursor: pointer; color: var(--ink2); transition: all 0.12s;
+}
+.nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+.nav-btn.done { background: var(--success); color: white; border-color: var(--success); }
+.nav-center { text-align: center; }
+.nav-main { font-size: 13px; font-weight: 600; }
+.nav-sub { font-size: 11px; color: var(--ink3); font-family: var(--mono); margin-top: 1px; }
+
+/* ── Invoice card ── */
+.invoice-card {
+  background: var(--white);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+/* Status banner — top of card, immediately visible */
+.status-banner {
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.status-ok { background: var(--success-bg); border-bottom: 1px solid var(--success-border); color: var(--success); }
+.status-err { background: var(--danger-bg); border-bottom: 1px solid var(--danger-border); color: var(--danger); }
+.status-warn { background: var(--warning-bg); border-bottom: 1px solid #F0C878; color: var(--warning); }
+.status-credit { background: #1C3557; border-bottom: 1px solid #1C3557; color: white; }
+.status-icon { font-size: 14px; margin-right: 6px; }
+.status-right { font-size: 11px; font-weight: 400; opacity: 0.8; }
+
+/* Supplier row */
+.supplier-row {
+  padding: 10px 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.supplier-name { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--hoya); }
+.page-badge { font-size: 10px; color: var(--ink3); font-family: var(--mono); }
+
+/* Field grid — compact 2-col layout for header */
+.fields-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 8px 20px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.field-item { padding: 5px 0; }
+.field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); margin-bottom: 2px; }
+.field-val { font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); display: flex; align-items: center; gap: 6px; }
+.field-val.text { font-family: var(--sans); font-size: 13px; }
+
+/* Copy button — inline */
+.cp {
+  background: none; border: none; cursor: pointer;
+  color: var(--ink3); font-size: 11px; padding: 1px 4px;
+  border-radius: 3px; font-family: var(--sans);
+  transition: all 0.12s; flex-shrink: 0;
+}
+.cp:hover { background: var(--accent-light); color: var(--accent); }
+.cp.ok { color: var(--success); }
+
+/* Line item section */
+.line-section { border-bottom: 1px solid var(--rule); }
+.line-section:last-of-type { border-bottom: none; }
+
+.line-header {
+  padding: 8px 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.line-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--accent); }
+.match-chip { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.3px; }
+.match-high { background: var(--success-bg); color: var(--success); }
+.match-med { background: var(--warning-bg); color: var(--warning); }
+.match-low { background: var(--danger-bg); color: var(--danger); }
+
+/* Line fields — compact */
+.line-fields { padding: 8px 20px; }
+.lf-row { display: flex; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #F0EFE8; }
+.lf-row:last-child { border-bottom: none; }
+.lf-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); width: 88px; flex-shrink: 0; }
+.lf-val { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); }
+.lf-val.text { font-family: var(--sans); font-size: 12px; }
+.lf-val.big { font-size: 16px; font-weight: 700; }
+.lf-val.muted { color: var(--ink3); font-style: italic; font-family: var(--sans); font-size: 11px; font-weight: 400; }
+.lf-val.invoice-ref { font-size: 11px; color: var(--ink3); font-family: var(--mono); font-weight: 400; }
+.lf-copy { margin-left: 8px; }
+
+/* Calc strip — compact single line */
+.calc-strip {
+  padding: 6px 20px;
+  background: #F8F7F3;
+  border-top: 1px solid var(--rule);
+  font-size: 11px;
+  color: var(--ink3);
+  font-family: var(--mono);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.calc-strip span { color: var(--ink2); }
+
+/* Grand total row */
+.grand-total-row {
+  padding: 10px 20px;
+  background: var(--accent);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+}
+.gt-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.7; }
+.gt-amount { font-family: var(--mono); font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.gt-cp { background: rgba(255,255,255,0.15); border: none; color: white; border-radius: 4px; padding: 3px 10px; font-size: 11px; cursor: pointer; font-family: var(--sans); }
+.gt-cp:hover { background: rgba(255,255,255,0.25); }
+
+/* Credit note */
+.credit-card { padding: 28px 20px; text-align: center; }
+.credit-card h3 { font-size: 14px; font-weight: 600; color: var(--danger); margin-bottom: 6px; }
+.credit-card p { font-size: 12px; color: var(--ink2); line-height: 1.6; }
+
+/* Zero value */
+.zero-card { padding: 28px 20px; text-align: center; }
+.zero-card .zero-icon { font-size: 28px; margin-bottom: 8px; }
+.zero-card h3 { font-size: 14px; font-weight: 600; color: var(--ink2); margin-bottom: 4px; }
+.zero-card p { font-size: 12px; color: var(--ink3); }
+
+/* No match warn */
+.no-match-bar { padding: 7px 20px; background: var(--warning-bg); border-top: 1px solid #F0C878; font-size: 11px; color: var(--warning); }
+
+/* Reset */
+.reset-wrap { text-align: center; margin-top: 16px; }
+.reset-btn { background: none; border: none; color: var(--ink3); font-size: 12px; cursor: pointer; font-family: var(--sans); text-decoration: underline; }
+.reset-btn:hover { color: var(--hoya); }
+
+/* Error box */
+.error-box { background: var(--danger-bg); border: 1px solid var(--danger-border); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--danger); margin-bottom: 12px; display: none; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(70px); background: var(--ink); color: white; padding: 8px 18px; border-radius: 6px; font-size: 12px; transition: transform 0.22s ease; z-index: 999; pointer-events: none; white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* Spinner */
+.spinner { display: inline-block; width: 11px; height: 11px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.65s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-left">
+    <div class="ep-mark">EP</div>
+    <h1>Invoice Assistant <span>— Hoya</span></h1>
+  </div>
+  <span class="v-badge">v13</span>
+</header>
+
+<main class="main">
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- API key setup -->
+  <div id="apiKeySection">
+    <div class="setup-label">First-time setup — API Key required</div>
+    <div class="setup-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+      <button class="btn-save-key" onclick="saveApiKeyFromInput()">Save Key</button>
+    </div>
+    <div class="setup-hint">Key saved to this browser — you won't need to enter it again on this computer.</div>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="fileInput" accept="image/*,.pdf,application/pdf" multiple />
+    <div class="upload-icon">📁</div>
+    <h3>Upload Hoya invoice files</h3>
+    <p><strong>PDF</strong> (Epson scans) or <strong>photos</strong> (JPG/PNG from phone)<br>
+    Select all at once — multi-page invoices grouped automatically</p>
+  </div>
+
+  <!-- File queue -->
+  <div class="file-queue" id="fileQueue">
+    <div class="fq-header">
+      <div>
+        <div class="fq-title" id="fqTitle">0 files</div>
+        <div class="fq-sub" id="fqSub"></div>
+      </div>
+      <button class="btn-analyse" id="analyseBtn" onclick="processAll()" disabled>
+        <span class="spinner" id="btnSpinner" style="display:none"></span>
+        Analyse
+      </button>
+    </div>
+    <div class="file-list" id="fileList"></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="prog-header">
+      <span class="prog-label" id="progLabel">Processing...</span>
+      <span class="prog-count" id="progCount"></span>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-detail" id="progDetail"></div>
+  </div>
+
+  <!-- Invoice viewer -->
+  <div class="invoice-viewer" id="invoiceViewer">
+    <div class="nav-bar">
+      <button class="nav-btn" id="prevBtn" onclick="navigate(-1)" disabled>← Prev</button>
+      <div class="nav-center">
+        <div class="nav-main" id="navMain">1 of 1</div>
+        <div class="nav-sub" id="navSub"></div>
+      </div>
+      <button class="nav-btn" id="nextBtn" onclick="navigate(1)">Next →</button>
+    </div>
+    <div class="invoice-card" id="invoiceCard"></div>
+    <div class="reset-wrap">
+      <button class="reset-btn" onclick="resetAll()">Start over with new invoices</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// API key — stored in localStorage, never hardcoded
+function getApiKey(){return localStorage.getItem('ep_hoya_api_key')||'';}
+function saveApiKey(k){localStorage.setItem('ep_hoya_api_key',k);}
+
+function initApp(){
+  if(!getApiKey()||getApiKey().trim()===''){
+    document.getElementById('apiKeySection').style.display='block';
+  }
+}
+
+function saveApiKeyFromInput(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  if(!k||!k.startsWith('sk-ant')){alert('Please enter a valid Anthropic API key starting with sk-ant');return;}
+  saveApiKey(k);
+  document.getElementById('apiKeySection').style.display='none';
+  showToast('API key saved to this browser');
+}
+
+// ── Hoya item database (177 active lens items, May 2026) ──
+const HOYA_ITEMS=[{"code":"LE1572","description":"Hoya Nulux Classic  (STK) 1.60"},{"code":"LE1573","description":"Hoya Nulux Classic  (STK) 1.67"},{"code":"LE1574","description":"Hoya Nulux Classic  (STK) 1.74"},{"code":"LE1578","description":"Hoya Nulux Classic  (STK) 1.55 HVP Sensity (Grey/Brown )"},{"code":"LE2133","description":"Hoya Nulux Classic Full Control 1.60"},{"code":"LE2134","description":"Hoya Nulux Classic Full Control 1.67"},{"code":"LE2135","description":"Hoya Nulux Classic Full Control 1.74"},{"code":"LE2131","description":"Hoya Nulux Classic Full Control 1.53"},{"code":"LE2132","description":"Hoya Nulux Classic Full Control 1.55"},{"code":"LE2136","description":"Nulux Classic 1.55"},{"code":"LE2909","description":"(26) Hoya Nulux Classic 1.60 UV"},{"code":"LE2911","description":"(26) Hoya Nulux Classic 1.74 UV"},{"code":"LE2971","description":"(26) Hoya Nulux Classic 1.60 Meiryo"},{"code":"LE2975","description":"(26) Hoya Nulux Classic 1.53 PNX Meiryo Sensity"},{"code":"LE1317","description":"Hoya Nulux Classic (RX) 1.60 HVLL UV Protection"},{"code":"LE1322","description":"Hoya Nulux Classic (RX) 1.67 HVLL UV Protection"},{"code":"LE1556","description":"Hoya Nulux Classic (RX) 1.50 HVLL UV Protection"},{"code":"LE1557","description":"Hoya Nulux Classic (RX) 1.53 HVLL UV Protection"},{"code":"LE2138","description":"Hoya Nulux Classic 1.74 (RX) HVLL UV Protection"},{"code":"LE1558","description":"Hoya Nulux Classic (RX) 1.50 HVLL Sensity 2"},{"code":"LE1559","description":"Hoya Nulux Classic (RX) 1.53 HVLL Sensity 2"},{"code":"LE1560","description":"Hoya Nulux Classic (RX) 1.60 HVLL Sensity 2"},{"code":"LE1561","description":"Hoya Nulux Classic (RX) 1.67 HVLL Sensity 2"},{"code":"LE2055","description":"Hoya Nulux Classic (STK) 1.60 HVLL Sensity (Grey/Brown)"},{"code":"LE2056","description":"Hoya Nulux Classic (STK) 1.67 HVLL Sensity (Grey/Brown)"},{"code":"LE1527","description":"Hoya Nulux Active Classic 1.50 HVLL"},{"code":"LE1528","description":"Hoya Nulux Active Classic 1.60 HVLL"},{"code":"LE1529","description":"Hoya Nulux Active Classic 1.67 HVLL"},{"code":"LE1530","description":"Hoya Nulux Active Classic 1.50 HVLL Sensity"},{"code":"LE1531","description":"Hoya Nulux Active Classic 1.60 HVLL Sensity"},{"code":"LE1532","description":"Hoya Nulux Active Classic 1.67 HVLL Sensity"},{"code":"LE1534","description":"Hoya Nulux V+1.60 HVLL UV Protection"},{"code":"LE1535","description":"Hoya Nulux V+1.67 HVLL UV Protection"},{"code":"LE1536","description":"Hoya Nulux V+1.74 HVLL UV Protection"},{"code":"LE2146","description":"Hoya Nulux V+1.53 HVLL UV Protection"},{"code":"LE1537","description":"Hoya Nulux V+ 1.50  HVLL Sensity 2"},{"code":"LE1538","description":"Hoya Nulux V+ 1.60  HVLL Sensity 2"},{"code":"LE1539","description":"Hoya Nulux V+ 1.67  HVLL Sensity 2"},{"code":"LE1540","description":"Hoya Nulux EP 1.60  HVLL"},{"code":"LE1541","description":"Hoya Nulux EP 1.67  HVLL"},{"code":"LE1542","description":"Hoya Nulux EP 1.74  HVLL"},{"code":"LE1543","description":"Hoya Nulux EP 1.60 HVLL Sensity 2"},{"code":"LE1544","description":"Hoya Nulux EP 1.67 HVLL Sensity 2"},{"code":"LE1545","description":"Hoya Nulux TF 1.50 HVLL UV Protection"},{"code":"LE1546","description":"Hoya Nulux TF 1.53 HVLL UV Protection"},{"code":"LE1547","description":"Hoya Nulux TF 1.60 HVLL UV Protection"},{"code":"LE1548","description":"Hoya Nulux TF 1.67 HVLL UV Protection"},{"code":"LE2148","description":"Hoya Nulux TF 1.74 HVLL UV Protection"},{"code":"LE1549","description":"Hoya Nulux TF 1.50 HVLL Sensity 2"},{"code":"LE1550","description":"Hoya Nulux TF 1.53 HVLL Sensity 2"},{"code":"LE1551","description":"Hoya Nulux TF 1.60 HVLL Sensity 2"},{"code":"LE1552","description":"Hoya Nulux TF 1.67 HVLL Sensity 2"},{"code":"LE1562","description":"Hoya Hilux Classic (RX) 1.50 HVLL UV Protection"},{"code":"LE1563","description":"Hoya Hilux Classic (RX) 1.53 HVLL UV Protection"},{"code":"LE1564","description":"Hoya Hilux Classic (RX) 1.60 HVLL UV Protection"},{"code":"LE1565","description":"Hoya Hilux Classic (RX) 1.67 HVLL UV Protection"},{"code":"LE1566","description":"Hoya Hilux Classic (RX) 1.50 HVLL Sensity 2"},{"code":"LE1567","description":"Hoya Hilux Classic (RX) 1.53 HVLL Sensity 2"},{"code":"LE1568","description":"Hoya Hilux Classic (RX) 1.60 HVLL Sensity 2"},{"code":"LE1569","description":"Hoya Hilux Classic (RX) 1.67 HVLL Sensity 2"},{"code":"LE2111","description":"Hoya Hilux Classic (Stk) 1.60 HVLL Sensity 2"},{"code":"LE1994","description":"Hoya Sync III Pro 1.50 HVLL"},{"code":"LE1995","description":"Hoya Sync III Pro 1.53 HVLL"},{"code":"LE1996","description":"Hoya Sync III Pro 1.60 HVLL"},{"code":"LE1997","description":"Hoya Sync III Pro 1.67 HVLL"},{"code":"LE1998","description":"Hoya Sync III Pro 1.74 HVLL"},{"code":"LE1999","description":"Hoya Sync III Pro 1.50 HVLL Sensity 2"},{"code":"LE2000","description":"Hoya Sync III Pro 1.53 HVLL Sensity 2"},{"code":"LE1993","description":"Hoya Sync III Pro 1.60 HVLL Sensity 2"},{"code":"LE2001","description":"Hoya Sync III Pro 1.67 HVLL Sensity 2"},{"code":"LE2893","description":"(26) Hoya Sync 3 Pro 1.60 Meiryo Sensity"},{"code":"LE2003","description":"Hoya Sync III 1.53 HVLL"},{"code":"LE2004","description":"Hoya Sync III 1.60 HVLL"},{"code":"LE2005","description":"Hoya Sync III 1.67 HVLL"},{"code":"LE2022","description":"Hoya MySelf 1.50 HVLL UV Protection"},{"code":"LE2023","description":"Hoya MySelf 1.53 PNX HVLL UV Protection"},{"code":"LE2024","description":"Hoya MySelf 1.60 HVLL UV Protection"},{"code":"LE2026","description":"Hoya MySelf 1.74 HVLL UV Protection"},{"code":"LE2027","description":"Hoya MySelf 1.50 Sensity 2 HVLL UV Protection"},{"code":"LE2028","description":"Hoya MySelf 1.53 PNX Sensity 2 HVLL UV Protection"},{"code":"LE2029","description":"Hoya MySelf 1.60 Sensity 2 HVLL UV Protection"},{"code":"LE2394","description":"Hoya MySelf Profile 1.50 HVLL UV Protection"},{"code":"LE2395","description":"Hoya MySelf Profile 1.53 HVLL UV Protection"},{"code":"LE2396","description":"Hoya MySelf Profile 1.60 HVLL UV Protection"},{"code":"LE2397","description":"Hoya MySelf Profile 1.67 HVLL UV Protection"},{"code":"LE2398","description":"Hoya MySelf Profile 1.74 HVLL UV Protection"},{"code":"LE2399","description":"Hoya MySelf Profile 1.50 Sensity 2 / Sensity Fast HVLL UV Protection"},{"code":"LE2400","description":"Hoya MySelf Profile 1.53 Sensity 2 / Sensity Fast HVLL UV Protection"},{"code":"LE2401","description":"Hoya MySelf Profile 1.6 Sensity 2 / Sensity Fast HVLL UV Protection"},{"code":"LE2402","description":"Hoya MySelf Profile 1.67 Sensity 2 / Sensity Fast HVLL UV Protection"},{"code":"LE2685","description":"(26) Hoya Myself Profile 1.53 PNX Meiryo"},{"code":"LE1950","description":"Hoyalux MyStyle V+ 1.60 Sensity 2 HVLL UV Protection"},{"code":"LE1953","description":"Hoyalux MyStyle V+ 1.53 PNX Sensity 2 HVLL UV Protection"},{"code":"LE1954","description":"Hoyalux MyStyle V+ 1.53 PNX HVLL UV Protection"},{"code":"LE1958","description":"Hoyalux MyStyle V+ 1.74 HVLL UV Protection"},{"code":"LE1981","description":"Hoyalux MyStyle V+ 1.60 HVLL UV Protection"},{"code":"LE1443","description":"Hoyalux LifeStyle Balansis 1.50 HVLL UV Protection"},{"code":"LE1444","description":"Hoyalux LifeStyle Balansis 1.53 PNX HVLL UV Protection"},{"code":"LE1445","description":"Hoyalux LifeStyle Balansis 1.60 HVLL UV Protection"},{"code":"LE1446","description":"Hoyalux LifeStyle Balansis 1.67 HVLL UV Protection"},{"code":"LE1447","description":"Hoyalux LifeStyle Balansis 1.74 HVLL UV Protection"},{"code":"LE1453","description":"Hoyalux LifeStyle Balansis 1.50 Sensity 2 HVLL"},{"code":"LE1454","description":"Hoyalux LifeStyle Balansis 1.53 Sensity 2 PNX HVLL"},{"code":"LE1455","description":"Hoyalux LifeStyle Balansis 1.60 Sensity 2 HVLL"},{"code":"LE1456","description":"Hoyalux LifeStyle Balansis 1.67 Sensity 2 HVLL"},{"code":"LE2407","description":"Hoya LifeStyle 4 1.50 HVLL UV Protection"},{"code":"LE2408","description":"Hoya LifeStyle 4 1.53 HVLL UV Protection"},{"code":"LE2409","description":"Hoya LifeStyle 4 1.60 HVLL UV Protection"},{"code":"LE2410","description":"Hoya LifeStyle 4 1.67 HVLL UV Protection"},{"code":"LE2411","description":"Hoya LifeStyle 4 1.74 HVLL UV Protection"},{"code":"LE2412","description":"Hoya LifeStyle 4 1.50 Sensity 2/Sensity Fast HVLL"},{"code":"LE2413","description":"Hoya LifeStyle 4 1.53 Sensity 2/Sensity Fast HVLL"},{"code":"LE2414","description":"Hoya LifeStyle 4 1.6 Sensity 2/Sensity Fast HVLL"},{"code":"LE2415","description":"Hoya LifeStyle 4 1.67 Sensity 2/Sensity Fast HVLL"},{"code":"LE1457","description":"Hoyalux Dynamic Premium 1.50 HVLL UV Protection"},{"code":"LE1458","description":"Hoyalux Dynamic Premium 1.53 PNX HVLL UV Protection"},{"code":"LE1459","description":"Hoyalux Dynamic Premium 1.60 HVLL UV Protection"},{"code":"LE1460","description":"Hoyalux Dynamic Premium 1.67 HVLL UV Protection"},{"code":"LE1461","description":"Hoyalux Dynamic Premium 1.74 HVLL UV Protection"},{"code":"LE1467","description":"Hoyalux Dynamic Premium 1.50 Sensity 2 HVLL"},{"code":"LE1468","description":"Hoyalux Dynamic Premium 1.53 Sensity 2 PNX HVLL"},{"code":"LE1469","description":"Hoyalux Dynamic Premium 1.60 Sensity 2 HVLL"},{"code":"LE1470","description":"Hoyalux Dynamic Premium 1.67 Sensity 2 HVLL"},{"code":"LE1471","description":"Hoyalux Dynamic Summit 1.50 HVLL UV Protection"},{"code":"LE1472","description":"Hoyalux Dynamic Summit 1.53 PNX HVLL UV Protection"},{"code":"LE1473","description":"Hoyalux Dynamic Summit 1.60 HVLL UV Protection"},{"code":"LE1474","description":"Hoyalux Dynamic Summit 1.67 HVLL UV Protection"},{"code":"LE1475","description":"Hoyalux Dynamic Summit 1.74 HVLL UV Protection"},{"code":"LE1481","description":"Hoyalux Dynamic Summit 1.50 Sensity 2 HVLL"},{"code":"LE1482","description":"Hoyalux Dynamic Summit 1.53 Sensity 2 PNX HVLL"},{"code":"LE1483","description":"Hoyalux Dynamic Summit 1.67 Sensity 2 HVLL"},{"code":"LE1484","description":"Hoyalux Dynamic Summit 1.60 Sensity 2 HVLL"},{"code":"LE1497","description":"Hoya WorkStyle 3 1.50 HVLL"},{"code":"LE1498","description":"Hoyalux WorkStyle 3 1.60 HVLL"},{"code":"LE1499","description":"Hoya WorkStyle 3 1.67 HVLL"},{"code":"LE2100","description":"Hoya WorkStyle 3 1.53 HVLL"},{"code":"LE1503","description":"Hoyalux WorkStyle Business 1.50 HVLL"},{"code":"LE1504","description":"Hoyalux WorkStyle Business 1.53 HVLL"},{"code":"LE1505","description":"Hoyalux WorkStyle Business 1.60 HVLL"},{"code":"LE1506","description":"Hoyalux WorkStyle Business 1.67 HVLL"},{"code":"LE1507","description":"Hoyalux WorkStyle Business 1.74 HVLL"},{"code":"LE1509","description":"Hoyalux SuperReader B 1.50 HVLL"},{"code":"LE1510","description":"Hoyalux SuperReader B 1.60 HVLL"},{"code":"LE1511","description":"Hoyalux SuperReader B 1.67 HVLL"},{"code":"LE2150","description":"Hoya MiYOSMART 1.59 HVLL"},{"code":"LE2151","description":"Hoya MiYOSMART 1.59 HVLL Full Control"},{"code":"LE2420","description":"Hoya MiYOSMART 1.59 Sensity  Full Control HVLL"},{"code":"LE1759","description":"Hoya MiYOSMART 1.59 Sensity Grey HVLL"},{"code":"LE2662","description":"Hoya VisuPro All Day i 1.50 HVLL UV Protection"},{"code":"LE2664","description":"Hoya VisuPro All Day i 1.67 HVLL UV Protection"},{"code":"LE2666","description":"Hoya VisuPro All Day i 1.74 HVLL UV Protection"},{"code":"LE2667","description":"Hoya VisuPro All Day i 1.50 Sensity"},{"code":"LE2679","description":"Hoyalux Enroute Pro 1.67 HVLL"},{"code":"LE2130","description":"Hoya Full Control PAL, Progressive & Others"},{"code":"LE1340","description":"Pentax 1.60 (STK) As INC"},{"code":"LE1346","description":"Pentax 1.67 (STK) As INC Blue"},{"code":"LE1356","description":"Pentax 1.67 (STK) As INC"},{"code":"LE1357","description":"Pentax 1.67 (RX) AS INC / INC Blue"},{"code":"LE1358","description":"Pentax 1.74 (RX) AS  INC / INC blue"},{"code":"LE1359","description":"Pentax 1.55 (STK) AS INC"},{"code":"LE1360","description":"Pentax 1.60 (RX) AS INC/ INC Blue"},{"code":"LE1364","description":"Pentax 1.55 (RX) AS Sensity (Grey)"},{"code":"LE1369","description":"Pentax  1.60 (STK) As INC Blue"},{"code":"LE2085","description":"Pentax 1.55 (RX) AS INC/ INC Blue"},{"code":"LE2086","description":"Pentax 1.60 (Rx) AS INC Sensity/Sensity Blue"},{"code":"LE2091","description":"Pentax 1.55 (STK) AS INC Blue"},{"code":"LE2110","description":"Pentax 1.59 (RX) AS INC/ INC Blue"},{"code":"LE2112","description":"Pentax 1.67 (Rx) AS INC Sensity/Sensity Blue"},{"code":"LE2113","description":"Pentax 1.50 SPH HD INC Polarised"},{"code":"LE2114","description":"Pentax 1.59 SPH HD INC Polarised"},{"code":"LE2115","description":"Pentax 1.60 SPH HD INC Polarised"},{"code":"LE2490","description":"Pentax 1.74 (Stk) AS INC"}];
+
+// Product family keywords for matching — derived from Frontwave naming methodology
+const LENS_FAMILIES=[
+  'nulux','hilux','sync','myself profile','myself','mystyle','miyosmart',
+  'lifestyle 4','lifestyle balansis','lifestyle','dynamic premium','dynamic summit',
+  'workstyle business','workstyle','supereader','visupro','pentax','enroute'
+];
+
+// Header → item code pattern map
+const HEADER_MAP=[
+  {p:/nulux\s+16[0o]\s+.*meiryo/i,c:'LE2971'},
+  {p:/nulux\s+167\s+.*meiryo/i,c:'LE2975'},
+  {p:/nulux\s+174\s+.*meiryo/i,c:'LE2911'},
+  {p:/nulux\s+153\s+.*meiryo.*sen/i,c:'LE1559'},
+  {p:/nulux\s+153\s+.*meiryo/i,c:'LE2975'},
+  {p:/nulux\s+16[0o]\s+.*fcontrol/i,c:'LE2133'},
+  {p:/nulux\s+167\s+.*fcontrol/i,c:'LE2134'},
+  {p:/nulux\s+174\s+.*fcontrol/i,c:'LE2135'},
+  {p:/nulux\s+153\s+.*fcontrol/i,c:'LE2131'},
+  {p:/nulux\s+16[0o]\s+.*uvc?/i,c:'LE1572'},
+  {p:/nulux\s+167\s+.*uvc?/i,c:'LE1573'},
+  {p:/nulux\s+174\s+.*uvc?/i,c:'LE1574'},
+  {p:/nulux\s+16[0o]\s+.*slgy/i,c:'LE1568'},
+  {p:/nulux\s+15[0o]\s+.*slgy/i,c:'LE1566'},
+  {p:/nulux\s+16[0o]\s+hvll/i,c:'LE1317'},
+  {p:/nulux\s+167\s+hvll/i,c:'LE1322'},
+  {p:/nulux\s+15[0o]\s+hvll/i,c:'LE1556'},
+  {p:/nulux\s+153\s+hvll/i,c:'LE1557'},
+  {p:/sync\s+3?\s+pro\s+16[0o]\s+.*meiryo/i,c:'LE2893'},
+  {p:/sync\s+3?\s+pro\s+16[0o]\s+.*sen/i,c:'LE1993'},
+  {p:/sync\s+3?\s+pro\s+16[0o]/i,c:'LE1996'},
+  {p:/sync\s+3?\s+pro\s+15[0o]\s+.*sen/i,c:'LE1999'},
+  {p:/sync\s+3?\s+pro\s+15[0o]/i,c:'LE1994'},
+  {p:/sync\s+3?\s+pro\s+153/i,c:'LE1995'},
+  {p:/sync\s+3?\s+pro\s+167\s+.*sen/i,c:'LE2001'},
+  {p:/sync\s+3?\s+pro\s+167/i,c:'LE1997'},
+  {p:/sync\s+3?\s+pro\s+174/i,c:'LE1998'},
+  {p:/sync\s+3?\s+16[0o]/i,c:'LE2004'},
+  {p:/sync\s+3?\s+167/i,c:'LE2005'},
+  {p:/sync\s+3?\s+153/i,c:'LE2003'},
+  {p:/myself\s+profile\s+153.*meiryo/i,c:'LE2685'},
+  {p:/myself\s+profile\s+153.*sen/i,c:'LE2400'},
+  {p:/myself\s+profile\s+153/i,c:'LE2395'},
+  {p:/myself\s+profile\s+16[0o].*sen/i,c:'LE2401'},
+  {p:/myself\s+profile\s+16[0o]/i,c:'LE2396'},
+  {p:/myself\s+profile\s+167.*sen/i,c:'LE2402'},
+  {p:/myself\s+profile\s+167/i,c:'LE2397'},
+  {p:/myself\s+profile\s+174/i,c:'LE2398'},
+  {p:/myself\s+profile\s+15[0o].*sen/i,c:'LE2399'},
+  {p:/myself\s+profile\s+15[0o]/i,c:'LE2394'},
+  {p:/myself\s+153.*sen/i,c:'LE2028'},
+  {p:/myself\s+153/i,c:'LE2023'},
+  {p:/myself\s+16[0o].*sen/i,c:'LE2029'},
+  {p:/myself\s+16[0o]/i,c:'LE2024'},
+  {p:/myself\s+174/i,c:'LE2026'},
+  {p:/lifestyle\s+4\s+153.*sen/i,c:'LE2413'},
+  {p:/lifestyle\s+4\s+153/i,c:'LE2408'},
+  {p:/lifestyle\s+4\s+15[0o].*sen/i,c:'LE2412'},
+  {p:/lifestyle\s+4\s+15[0o]/i,c:'LE2407'},
+  {p:/lifestyle\s+4\s+16[0o].*sen/i,c:'LE2414'},
+  {p:/lifestyle\s+4\s+16[0o]/i,c:'LE2409'},
+  {p:/lifestyle\s+4\s+167.*sen/i,c:'LE2415'},
+  {p:/lifestyle\s+4\s+167/i,c:'LE2410'},
+  {p:/workstyle\s+business\s+16[0o]/i,c:'LE1505'},
+  {p:/workstyle\s+business\s+167/i,c:'LE1506'},
+  {p:/workstyle\s+business\s+15[0o]/i,c:'LE1503'},
+  {p:/workstyle\s+business\s+153/i,c:'LE1504'},
+  {p:/workstyle\s+3?\s+16[0o]/i,c:'LE1498'},
+  {p:/workstyle\s+3?\s+167/i,c:'LE1499'},
+  {p:/workstyle\s+3?\s+153/i,c:'LE2100'},
+  {p:/supereader.*16[0o]/i,c:'LE1510'},
+  {p:/supereader.*167/i,c:'LE1511'},
+  {p:/supereader.*15[0o]/i,c:'LE1509'},
+  {p:/hilux.*15[0o].*slgy/i,c:'LE1566'},
+  {p:/hilux.*15[0o]/i,c:'LE1562'},
+  {p:/hilux.*16[0o].*slgy/i,c:'LE1568'},
+  {p:/hilux.*16[0o]/i,c:'LE1564'},
+  {p:/hilux.*167/i,c:'LE1565'},
+  {p:/pentax.*155.*inc.?blue/i,c:'LE2091'},
+  {p:/pentax.*155.*inc/i,c:'LE1359'},
+  {p:/pentax.*16[0o].*inc.?blue/i,c:'LE1369'},
+  {p:/pentax.*16[0o].*inc/i,c:'LE1340'},
+  {p:/pentax.*167.*inc/i,c:'LE1356'},
+  {p:/pentax.*174/i,c:'LE2490'},
+  {p:/miyosmart.*sen.*full/i,c:'LE2420'},
+  {p:/miyosmart.*full/i,c:'LE2151'},
+  {p:/miyosmart.*sen/i,c:'LE1759'},
+  {p:/miyosmart/i,c:'LE2150'},
+];
+
+function matchFromHeader(h){
+  if(!h)return null;
+  const hl=h.toLowerCase();
+  for(const m of HEADER_MAP){if(m.p.test(hl)){return HOYA_ITEMS.find(i=>i.code===m.c)||null;}}
+  // Fallback fuzzy
+  const scored=HOYA_ITEMS.map(item=>{
+    const d=item.description.toLowerCase();
+    let s=0;
+    const idx=hl.match(/1\.\d{2}/);if(idx&&d.includes(idx[0]))s+=8;
+    const ni=hl.match(/\b1[5-7][0-9]\b/);if(ni){const mv={'155':'1.55','150':'1.50','153':'1.53','160':'1.60','167':'1.67','174':'1.74','159':'1.59'};const v=mv[ni[0]];if(v&&d.includes(v))s+=6;}
+    for(const f of LENS_FAMILIES){if(hl.includes(f)&&d.toLowerCase().includes(f))s+=6;}
+    if(hl.includes('stk')&&d.includes('stk'))s+=4;
+    if(hl.includes('fcontrol')&&d.includes('full control'))s+=4;
+    if(hl.includes('meiryo')&&(d.includes('meiryo')||d.includes('(26)')))s+=4;
+    if(hl.includes('sen')&&d.includes('sensity'))s+=3;
+    return{...item,score:s};
+  }).filter(i=>i.score>=6).sort((a,b)=>b.score-a.score);
+  return scored[0]||null;
+}
+
+function normaliseHeader(h){
+  if(!h)return '';
+  const t=h.trim();
+  return t.slice(0,Math.floor(t.length*0.75)).toLowerCase().trim();
+}
+
+function headersSameLens(h1,h2){
+  if(!h1||!h2)return false;
+  const n1=normaliseHeader(h1),n2=normaliseHeader(h2);
+  if(n1===n2)return true;
+  const ml=Math.min(n1.length,n2.length);
+  const cl=Math.floor(ml*0.75);
+  return cl>=5&&n1.slice(0,cl)===n2.slice(0,cl);
+}
+
+// ── File handling ──
+let uploadedFiles=[],invoiceGroups=[],currentIdx=0;
+const fileInput=document.getElementById('fileInput');
+const uploadZone=document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{e.preventDefault();uploadZone.classList.remove('drag');if(e.dataTransfer.files.length)handleFiles(Array.from(e.dataTransfer.files))});
+fileInput.addEventListener('change',e=>{if(e.target.files.length)handleFiles(Array.from(e.target.files))});
+
+function handleFiles(files){
+  uploadedFiles=files.filter(f=>f.type.startsWith('image/')||f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf'));
+  if(!uploadedFiles.length){showError('Please select image or PDF files.');return;}
+  hideError();
+  const pdfs=uploadedFiles.filter(f=>isPdf(f)).length;
+  const imgs=uploadedFiles.filter(f=>!isPdf(f)).length;
+  document.getElementById('fileQueue').style.display='block';
+  document.getElementById('fqTitle').textContent=`${uploadedFiles.length} file${uploadedFiles.length!==1?'s':''} selected`;
+  const parts=[];if(pdfs)parts.push(`${pdfs} PDF${pdfs!==1?'s':''}`);if(imgs)parts.push(`${imgs} image${imgs!==1?'s':''}`);
+  document.getElementById('fqSub').textContent=parts.join(' + ')+' — pages grouped automatically';
+  document.getElementById('analyseBtn').disabled=false;
+  document.getElementById('fileList').innerHTML=uploadedFiles.map(f=>`
+    <div class="file-item">
+      <span>${isPdf(f)?'📄':'🖼'}</span>
+      <span class="fi-name">${f.name}</span>
+      <span class="fi-size">${(f.size/1024).toFixed(0)}KB</span>
+      <span class="fi-tag ${isPdf(f)?'fi-pdf':'fi-img'}">${isPdf(f)?'PDF':'IMG'}</span>
+    </div>`).join('');
+}
+
+function isPdf(f){return f.type==='application/pdf'||f.name.toLowerCase().endsWith('.pdf');}
+
+async function pdfToImages(file){
+  const ab=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+  const imgs=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    const page=await pdf.getPage(p);
+    const vp=page.getViewport({scale:2.0});
+    const canvas=document.createElement('canvas');
+    canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    imgs.push({base64:canvas.toDataURL('image/jpeg',0.92).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
+  }
+  return imgs;
+}
+
+async function processAll(){
+  hideError();
+  if(!getApiKey()){document.getElementById('apiKeySection').style.display='block';showError('Please enter your API key first.');return;}
+  document.getElementById('analyseBtn').disabled=true;
+  document.getElementById('btnSpinner').style.display='inline-block';
+  document.getElementById('fileQueue').style.display='none';
+  document.getElementById('uploadZone').style.display='none';
+  document.getElementById('progressWrap').style.display='block';
+
+  const allPages=[];
+  for(let i=0;i<uploadedFiles.length;i++){
+    const file=uploadedFiles[i];
+    setProgress(i,uploadedFiles.length,`Converting ${file.name}...`,'Step 1/2: Preparing files');
+    try{
+      if(isPdf(file)){const imgs=await pdfToImages(file);imgs.forEach(img=>allPages.push({...img,sourceFile:file.name}));}
+      else{const{base64,mimeType}=await toBase64(file);allPages.push({base64,mimeType,pageNum:1,totalPages:1,sourceFile:file.name});}
+    }catch(err){allPages.push({base64:null,mimeType:'image/jpeg',pageNum:1,totalPages:1,sourceFile:file.name,error:err.message});}
+  }
+
+  const pageResults=[];
+  for(let i=0;i<allPages.length;i++){
+    const page=allPages[i];
+    setProgress(i,allPages.length,`Reading page ${i+1} of ${allPages.length}...`,'Step 2/2: Extracting invoice data');
+    if(page.error||!page.base64){pageResults.push({invoice_no:`ERR_${i}`,page_no:1,error:page.error,grand_total:null,is_credit_note:false});continue;}
+    try{
+      const result=await extractPage(page.base64,page.mimeType);
+      result.sourceFile=page.sourceFile;
+      pageResults.push(result);
+    }catch(err){pageResults.push({invoice_no:`ERR_${i}`,page_no:page.pageNum,error:err.message,grand_total:null});}
+  }
+
+  invoiceGroups=buildGroups(pageResults);
+  currentIdx=0;
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('invoiceViewer').style.display='block';
+  renderInvoice();
+}
+
+function setProgress(done,total,detail,label){
+  document.getElementById('progLabel').textContent=label||'Processing...';
+  document.getElementById('progCount').textContent=total>0?`${done}/${total}`:'';
+  document.getElementById('progFill').style.width=total>0?`${(done/total)*100}%`:'0%';
+  document.getElementById('progDetail').textContent=detail;
+}
+
+async function extractPage(base64,mimeType){
+  const prompt=`This is a page from a Hoya Lens (S) Pte Ltd document for Eyecare People, Singapore.
+
+CRITICAL: A Hoya invoice has MAXIMUM 2 lenses (one R and one L). Everything else is a shared cost.
+
+Extract as JSON (ONLY valid JSON, no other text):
+{
+  "invoice_no": "e.g. IH26024744 or CH26000524",
+  "page_no": number,
+  "total_pages": number,
+  "invoice_date": "as printed",
+  "doc_type": "TAX INVOICE" or "CREDIT NOTE",
+  "job_ref": "second line at bottom-left only",
+  "grand_total": number or null,
+  "no1_header": "product name next to NO 1 e.g. STK-NULUX 160 FCONTROL FCONTROL PD68.5",
+  "no2_header": "product name next to NO 2 if present, else null",
+  "r_amount": number or null,
+  "l_amount": number or null,
+  "shared_costs": [{"desc": "description", "amount": number}]
+}
+
+RULES:
+1. no1_header: Full product description for NO 1. Lens product family + index + coating only.
+2. no2_header: Product description for NO 2. null if only one NO.
+3. r_amount: AMOUNT (S$) of line starting with "R " — right lens only.
+4. l_amount: AMOUNT (S$) of line starting with "L " — left lens only.
+5. shared_costs: ALL other charged lines — edging, METS, Full Control, Full Tinting, coatings, mounting. Lines on page 2 with no NO number are ALSO shared costs. Always use AMOUNT column value.
+6. grand_total: TOTAL AMOUNT (after GST) bottom right. null if not on this page.
+7. job_ref: Bottom-left has TWO lines. Line 1 is a long numeric tracking code (IGNORE). Line 2 is the actual job reference with letters e.g. "0334 N150 O/LINBERDG" (USE THIS).`;
+
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mimeType,data:base64}},{type:'text',text:prompt}]}]})
+  });
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||`API ${resp.status}`);}
+  const data=await resp.json();
+  const raw=data.content[0].text;
+  const match=raw.match(/\{[\s\S]*\}/);
+  return JSON.parse(match?match[0]:raw);
+}
+
+function buildGroups(pages){
+  const map={};
+  pages.forEach(p=>{
+    const key=(p.invoice_no||'UNKNOWN').trim().toUpperCase();
+    if(!map[key])map[key]={invoiceNo:key,pages:[],grandTotal:null,jobRef:null,date:null,no1Header:null,no2Header:null,rAmt:0,lAmt:0,sharedCosts:[],isCreditNote:false};
+    map[key].pages.push(p);
+    if(p.grand_total!=null)map[key].grandTotal=p.grand_total;
+    if(p.job_ref&&p.job_ref.trim())map[key].jobRef=p.job_ref.trim();
+    if(p.invoice_date)map[key].date=p.invoice_date;
+    if(p.doc_type&&p.doc_type.includes('CREDIT'))map[key].isCreditNote=true;
+    if(p.no1_header&&!map[key].no1Header)map[key].no1Header=p.no1_header;
+    if(p.no2_header&&!map[key].no2Header)map[key].no2Header=p.no2_header;
+    if(p.r_amount!=null&&p.r_amount>0)map[key].rAmt=p.r_amount;
+    if(p.l_amount!=null&&p.l_amount>0)map[key].lAmt=p.l_amount;
+    if(p.shared_costs)p.shared_costs.forEach(c=>{if((c.amount||0)>0)map[key].sharedCosts.push(c);});
+  });
+
+  return Object.values(map).map(inv=>{
+    inv.pages.sort((a,b)=>(a.page_no||1)-(b.page_no||1));
+    if(inv.isCreditNote)return inv;
+
+    const totalShared=inv.sharedCosts.reduce((s,c)=>s+(c.amount||0),0);
+    const sharedPerLens=totalShared/2;
+    const hasR=inv.rAmt>0,hasL=inv.lAmt>0;
+    const totalLenses=(hasR?1:0)+(hasL?1:0)||1;
+    const isSingle=totalLenses===1;
+
+    // Zero-value invoice
+    if(inv.grandTotal===0||(inv.grandTotal!=null&&inv.grandTotal<0.01)){
+      inv.isZeroValue=true;
+      inv.fwLines=[{header:inv.no1Header||'',unitPrice:0,qty:totalLenses,isSingle,rAmt:0,lAmt:0,sharedCost:0,sharedPerLens:0,match:matchFromHeader(inv.no1Header||''),isZero:true,useGrandTotal:false}];
+      return inv;
+    }
+
+    const sameLens=!inv.no2Header||headersSameLens(inv.no1Header||'',inv.no2Header||'');
+
+    if(sameLens){
+      const qty=isSingle?1:2;
+      const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/qty)*100)/100:0;
+      inv.fwLines=[{header:inv.no1Header,rAmt:inv.rAmt,lAmt:inv.lAmt,sharedCost:totalShared,sharedPerLens,unitPrice,qty,isSingle,match:matchFromHeader(inv.no1Header),useGrandTotal:true}];
+    } else {
+      const r_unit=Math.round(((inv.rAmt+sharedPerLens)*1.09)*100)/100;
+      const l_unit=Math.round(((inv.lAmt+sharedPerLens)*1.09)*100)/100;
+      inv.fwLines=[
+        {header:inv.no1Header,rAmt:inv.rAmt,lAmt:0,sharedCost:totalShared,sharedPerLens,unitPrice:r_unit,qty:1,isSingle:false,match:matchFromHeader(inv.no1Header),useGrandTotal:false},
+        {header:inv.no2Header,rAmt:0,lAmt:inv.lAmt,sharedCost:totalShared,sharedPerLens,unitPrice:l_unit,qty:1,isSingle:false,match:matchFromHeader(inv.no2Header),useGrandTotal:false}
+      ];
+    }
+
+    // Verification ±$0.10
+    if(inv.grandTotal&&inv.fwLines){
+      const calcTotal=inv.fwLines.reduce((s,l)=>s+(l.unitPrice*l.qty),0);
+      inv.calcTotal=Math.round(calcTotal*100)/100;
+      inv.verifyDiff=Math.abs(calcTotal-inv.grandTotal);
+      inv.verifyOk=inv.verifyDiff<=0.10;
+    }
+    return inv;
+  });
+}
+
+function renderInvoice(){
+  const inv=invoiceGroups[currentIdx];
+  const total=invoiceGroups.length;
+  document.getElementById('navMain').textContent=`${currentIdx+1} of ${total}`;
+  document.getElementById('navSub').textContent=inv.invoiceNo;
+  document.getElementById('prevBtn').disabled=currentIdx===0;
+  const nb=document.getElementById('nextBtn');
+  if(currentIdx===total-1){nb.textContent='✓ Done';nb.className='nav-btn done';}
+  else{nb.textContent='Next →';nb.className='nav-btn';}
+  nb.disabled=false;
+
+  const card=document.getElementById('invoiceCard');
+  card.classList.remove('blocked');
+  let html='';
+
+  // Credit note
+  if(inv.isCreditNote){
+    html=`<div class="status-banner status-credit"><span>CREDIT NOTE</span><span class="status-right">${inv.invoiceNo}</span></div>
+    <div class="credit-card"><h3>⚠ Credit Note — No Frontwave entry required</h3>
+    <p><strong>${inv.invoiceNo}</strong> dated ${inv.date||'—'} is a Credit Note.<br>Handle separately with your accounts process.</p></div>`;
+    card.innerHTML=html;return;
+  }
+
+  // Zero value
+  if(inv.isZeroValue){
+    html=`<div class="status-banner status-warn"><span>⏭ ZERO VALUE — No entry required</span><span class="status-right">${inv.invoiceNo}</span></div>
+    <div class="zero-card"><div class="zero-icon">⏭</div><h3>Zero Value Invoice</h3>
+    <p>Grand Total is $0.00 — warranty or replacement order.<br>No Frontwave entry required.</p></div>`;
+    card.innerHTML=html;return;
+  }
+
+  // Determine status for banner — FIRST thing rendered
+  let statusClass,statusText,statusRight='';
+  if(!inv.grandTotal){
+    statusClass='status-warn';statusText='⚠ Grand Total not found — check all pages uploaded';
+  } else if(inv.verifyOk){
+    statusClass='status-ok';
+    statusText=`✓ Verified — S$${inv.calcTotal} matches Grand Total`;
+    statusRight=`${inv.fwLines?inv.fwLines.length:0} line${inv.fwLines&&inv.fwLines.length!==1?'s':''}`;
+  } else {
+    statusClass='status-err';
+    statusText=`✗ MISMATCH — Do NOT enter. Calc S$${inv.calcTotal} ≠ Grand Total S$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'} (diff S$${inv.verifyDiff?inv.verifyDiff.toFixed(2):'?'})`;
+    card.classList.add('blocked');
+  }
+
+  html+=`<div class="status-banner ${statusClass}"><span class="status-icon"></span>${statusText}<span class="status-right">${statusRight}</span></div>`;
+
+  // Supplier + pages info
+  html+=`<div class="supplier-row">
+    <span class="supplier-name">Hoya Lens (S) Pte Ltd</span>
+    <span class="page-badge">${inv.pages.length} page${inv.pages.length!==1?'s':''}</span>
+  </div>`;
+
+  // Header fields — 2-col compact grid
+  const blocked=!inv.verifyOk&&inv.grandTotal;
+  const cpBtn=(text,val)=>blocked?'':`<button class="cp" onclick="copyText(this,'${esc(val)}')" title="Copy">⧉</button>`;
+
+  html+=`<div class="fields-header">
+    <div class="field-item">
+      <div class="field-label">Invoice Date</div>
+      <div class="field-val">${inv.date||'—'} ${inv.date?cpBtn('date',inv.date):''}</div>
+    </div>
+    <div class="field-item">
+      <div class="field-label">Invoice No</div>
+      <div class="field-val">${inv.invoiceNo} ${cpBtn('inv',inv.invoiceNo)}</div>
+    </div>
+    <div class="field-item" style="grid-column:1/-1">
+      <div class="field-label">Remarks (Job Ref)</div>
+      <div class="field-val">${inv.jobRef||'<span style="color:var(--ink3);font-family:var(--sans);font-size:12px">Not found</span>'} ${inv.jobRef?cpBtn('remarks',inv.jobRef):''}</div>
+    </div>
+    <div class="field-item" style="grid-column:1/-1">
+      <div class="field-label">Name</div>
+      <div class="field-val text">Hoya Lens (S) Pte Ltd ${cpBtn('name','Hoya Lens (S) Pte Ltd')}</div>
+    </div>
+  </div>`;
+
+  // Line items
+  const hasNoMatch=inv.fwLines&&inv.fwLines.some(l=>!l.match);
+  if(inv.fwLines&&inv.fwLines.length>0){
+    inv.fwLines.forEach((line,i)=>{
+      const m=line.match;
+      const mClass=m?(m.score>=14?'match-high':'match-med'):'match-low';
+      const mLabel=m?(m.score>=14?'High':'Med'):'No match';
+      const lineLabel=inv.fwLines.length>1?`Line Item ${i+1} of ${inv.fwLines.length}`:`Line Item${line.isSingle?' — Single Lens':''}`;
+
+      html+=`<div class="line-section">
+        <div class="line-header">
+          <span class="line-label">${lineLabel}</span>
+          <span class="match-chip ${mClass}">${mLabel} match</span>
+        </div>
+        <div class="line-fields">
+          <div class="lf-row">
+            <span class="lf-label">Item Code</span>
+            <span class="lf-val">${m?m.code:'<span style="color:var(--danger)">—</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${m.code}')">⧉</button>`:''}</span>
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Description</span>
+            <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">⧉</button>`:''}</span>
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Invoice</span>
+            <span class="lf-val invoice-ref">${line.header||'—'}</span>
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Quantity</span>
+            <span class="lf-val big">${line.qty}${!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${line.qty}')">⧉</button>`:''}</span>
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Unit Price</span>
+            <span class="lf-val big">${line.unitPrice.toFixed(2)}${!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${line.unitPrice.toFixed(2)}')">⧉</button>`:''}</span>
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Tax Code</span>
+            <span class="lf-val muted">TX — type manually</span>
+          </div>
+        </div>
+        <div class="calc-strip">
+          ${line.useGrandTotal
+            ?`S$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'} ÷ ${line.qty} = <span>S$${line.unitPrice.toFixed(2)}</span>`
+            :`(S$${line.rAmt||line.lAmt} + S$${line.sharedPerLens.toFixed(2)} shared) × 1.09 = <span>S$${line.unitPrice.toFixed(2)}</span>`
+          }
+        </div>
+      </div>`;
+    });
+  } else {
+    html+=`<div style="padding:20px;text-align:center;color:var(--ink3);font-size:12px">No lens lines extracted — check invoice is clear</div>`;
+  }
+
+  // Grand total
+  if(inv.grandTotal){
+    html+=`<div class="grand-total-row">
+      <div><div class="gt-label">Grand Total (inc GST)</div></div>
+      <div class="gt-amount">S$${inv.grandTotal.toFixed(2)}${!blocked?`<button class="gt-cp" onclick="copyText(this,'${inv.grandTotal.toFixed(2)}')">Copy</button>`:''}</div>
+    </div>`;
+  }
+
+  if(hasNoMatch)html+=`<div class="no-match-bar">⚠ One or more items not matched — verify item codes in Frontwave before entering</div>`;
+
+  card.innerHTML=html;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function navigate(dir){
+  const n=currentIdx+dir;
+  if(n<0)return;
+  if(n>=invoiceGroups.length){showToast('All invoices processed ✓');return;}
+  currentIdx=n;renderInvoice();
+}
+
+function copyText(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.textContent;btn.textContent='✓';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);
+  });
+}
+
+function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res({base64:e.target.result.split(',')[1],mimeType:file.type});r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
+function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block';}
+function hideError(){document.getElementById('errorBox').style.display='none';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function resetAll(){uploadedFiles=[];invoiceGroups=[];currentIdx=0;document.getElementById('uploadZone').style.display='block';document.getElementById('fileQueue').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('invoiceViewer').style.display='none';document.getElementById('fileInput').value='';hideError();}
+
+initApp();
+</script>
+</body>
+</html>
