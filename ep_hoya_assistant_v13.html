@@ -203,9 +203,10 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
   padding: 8px 20px 12px;
   border-bottom: 1px solid var(--rule);
 }
-.field-item { padding: 5px 0; }
-.field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); margin-bottom: 2px; }
-.field-val { font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); display: flex; align-items: center; gap: 6px; }
+.field-item { padding: 6px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.field-item-inner { flex: 1; min-width: 0; }
+.field-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); margin-bottom: 1px; }
+.field-val { font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .field-val.text { font-family: var(--sans); font-size: 13px; }
 
 /* Copy button — inline */
@@ -240,7 +241,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 /* Line fields — compact */
 .line-fields { padding: 8px 20px; }
-.lf-row { display: flex; align-items: baseline; padding: 3px 0; border-bottom: 1px solid #F0EFE8; }
+.lf-row { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #F0EFE8; gap: 8px; }
 .lf-row:last-child { border-bottom: none; }
 .lf-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); width: 88px; flex-shrink: 0; }
 .lf-val { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); }
@@ -248,7 +249,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .lf-val.big { font-size: 16px; font-weight: 700; }
 .lf-val.muted { color: var(--ink3); font-style: italic; font-family: var(--sans); font-size: 11px; font-weight: 400; }
 .lf-val.invoice-ref { font-size: 11px; color: var(--ink3); font-family: var(--mono); font-weight: 400; }
-.lf-copy { margin-left: 6px; }
+.lf-copy { margin-left: auto; flex-shrink: 0; }
 
 /* Calc strip — compact single line */
 .calc-strip {
@@ -785,27 +786,22 @@ function renderInvoice(){
 
   html+=`<div class="fields-header">
     <div class="field-item" style="grid-column:1/-1">
-      <div class="field-label">Name</div>
-      <div class="field-val text">Hoya Lens (S) Pte Ltd ${cpBtn('name','Hoya Lens (S) Pte Ltd')}</div>
+      <div class="field-item-inner"><div class="field-label">Name</div><div class="field-val text">Hoya Lens (S) Pte Ltd</div></div>
+      ${cpBtn('name','Hoya Lens (S) Pte Ltd')}
     </div>
     <div class="field-item">
-      <div class="field-label">Invoice Date</div>
-      <div class="field-val">${inv.date||'—'} ${inv.date?cpBtn('date',inv.date):''}</div>
+      <div class="field-item-inner"><div class="field-label">Invoice Date</div><div class="field-val">${inv.date||'—'}</div></div>
+      ${inv.date?cpBtn('date',inv.date):''}
     </div>
     <div class="field-item" style="grid-column:1/-1">
-      <div class="field-label">Invoice No</div>
-      <div class="field-val">${inv.invoiceNo} ${cpBtn('inv',inv.invoiceNo)}</div>
+      <div class="field-item-inner"><div class="field-label">Invoice No</div><div class="field-val">${inv.invoiceNo}</div></div>
+      ${cpBtn('inv',inv.invoiceNo)}
     </div>
     <div class="field-item" style="grid-column:1/-1">
-      <div class="field-label">Remarks (Job Ref)</div>
-      <div class="field-val">${inv.jobRef||'<span style="color:var(--ink3);font-family:var(--sans);font-size:12px">Not found</span>'} ${inv.jobRef?cpBtn('remarks',inv.jobRef):''}</div>
-    </div>
-    <div class="field-item" style="grid-column:1/-1">
-      <div class="field-label">Name</div>
-      <div class="field-val text">Hoya Lens (S) Pte Ltd ${cpBtn('name','Hoya Lens (S) Pte Ltd')}</div>
+      <div class="field-item-inner"><div class="field-label">Remarks (Job Ref)</div><div class="field-val">${inv.jobRef||'<span style="color:var(--ink3);font-family:var(--sans);font-size:12px">Not found</span>'}</div></div>
+      ${inv.jobRef?cpBtn('remarks',inv.jobRef):''}
     </div>
   </div>`;
-
   // Line items
   const hasNoMatch=inv.fwLines&&inv.fwLines.some(l=>!l.match);
   if(inv.fwLines&&inv.fwLines.length>0){
@@ -835,65 +831,10 @@ function renderInvoice(){
           </div>
           <div class="lf-row">
             <span class="lf-label">Quantity</span>
-            <span class="lf-val big">${line.qty}${!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${line.qty}')">⧉</button>`:''}</span>
+            <span class="lf-val big">${line.qty}</span>
+            ${!blocked?'<button class="cp lf-copy" onclick="copyText(this,\''+line.qty+'\')">Copy</button>':''}
           </div>
           <div class="lf-row">
             <span class="lf-label">Unit Price</span>
-            <span class="lf-val big">${line.unitPrice.toFixed(2)}${!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${line.unitPrice.toFixed(2)}')">⧉</button>`:''}</span>
-          </div>
-          <div class="lf-row">
-            <span class="lf-label">Tax Code</span>
-            <span class="lf-val muted">TX — type manually</span>
-          </div>
-        </div>
-        <div class="calc-strip">
-          ${line.useGrandTotal
-            ?`S$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'} ÷ ${line.qty} = <span>S$${line.unitPrice.toFixed(2)}</span>`
-            :`(S$${line.rAmt||line.lAmt} + S$${line.sharedPerLens.toFixed(2)} shared) × 1.09 = <span>S$${line.unitPrice.toFixed(2)}</span>`
-          }
-        </div>
-      </div>`;
-    });
-  } else {
-    html+=`<div style="padding:20px;text-align:center;color:var(--ink3);font-size:12px">No lens lines extracted — check invoice is clear</div>`;
-  }
-
-  // Grand total
-  if(inv.grandTotal){
-    html+=`<div class="grand-total-row">
-      <div><div class="gt-label">Grand Total (inc GST)</div></div>
-      <div class="gt-amount">S$${inv.grandTotal.toFixed(2)}${!blocked?`<button class="gt-cp" onclick="copyText(this,'${inv.grandTotal.toFixed(2)}')">Copy</button>`:''}</div>
-    </div>`;
-  }
-
-  if(hasNoMatch)html+=`<div class="no-match-bar">⚠ One or more items not matched — verify item codes in Frontwave before entering</div>`;
-
-  card.innerHTML=html;
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function navigate(dir){
-  const n=currentIdx+dir;
-  if(n<0)return;
-  if(n>=invoiceGroups.length){showToast('All invoices processed ✓');return;}
-  currentIdx=n;renderInvoice();
-}
-
-function copyText(btn,text){
-  navigator.clipboard.writeText(text).then(()=>{
-    const o=btn.textContent;btn.textContent='✓';btn.classList.add('ok');
-    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);
-  });
-}
-
-function esc(s){return(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');}
-function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res({base64:e.target.result.split(',')[1],mimeType:file.type});r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
-function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block';}
-function hideError(){document.getElementById('errorBox').style.display='none';}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
-function resetAll(){uploadedFiles=[];invoiceGroups=[];currentIdx=0;document.getElementById('uploadZone').style.display='block';document.getElementById('fileQueue').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('invoiceViewer').style.display='none';document.getElementById('fileInput').value='';hideError();}
-
-initApp();
-</script>
-</body>
-</html>
+            <span class="lf-val big">${line.unitPrice.toFixed(2)}</span>
+            ${!blocked?'<button class="cp lf-copy" onclick="copyText(this,\''+line.unitPrice.toFixed(2)+'\')">Copy</button>':''}
