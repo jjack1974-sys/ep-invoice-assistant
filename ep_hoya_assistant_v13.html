@@ -782,7 +782,7 @@ function renderInvoice(){
 
   // Header fields — 2-col compact grid
   const blocked=!inv.verifyOk&&inv.grandTotal;
-  const cpBtn=(text,val)=>blocked?'':`<button class="cp" onclick="copyText(this,'${esc(val)}')">Copy</button>`;
+  const cpBtn=(text,val)=>blocked?'':'<button class="cp" onclick="copyText(this,\''+esc(val)+'\')">Copy</button>';
 
   html+=`<div class="fields-header">
     <div class="field-item" style="grid-column:1/-1">
@@ -838,3 +838,60 @@ function renderInvoice(){
             <span class="lf-label">Unit Price</span>
             <span class="lf-val big">${line.unitPrice.toFixed(2)}</span>
             ${!blocked?'<button class="cp lf-copy" onclick="copyText(this,\''+line.unitPrice.toFixed(2)+'\')">Copy</button>':''}
+          </div>
+          <div class="lf-row">
+            <span class="lf-label">Tax Code</span>
+            <span class="lf-val muted">TX — type manually</span>
+          </div>
+        </div>
+        <div class="calc-strip">
+          ${line.useGrandTotal
+            ?`S$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'} ÷ ${line.qty} = <span>S$${line.unitPrice.toFixed(2)}</span>`
+            :`(S$${line.rAmt||line.lAmt} + S$${line.sharedPerLens.toFixed(2)} shared) × 1.09 = <span>S$${line.unitPrice.toFixed(2)}</span>`
+          }
+        </div>
+      </div>`;
+    });
+  } else {
+    html+=`<div style="padding:20px;text-align:center;color:var(--ink3);font-size:12px">No lens lines extracted — check invoice is clear</div>`;
+  }
+
+  // Grand total
+  if(inv.grandTotal){
+    html+=`<div class="grand-total-row">
+      <div><div class="gt-label">Grand Total (inc GST)</div></div>
+      <div class="gt-amount">S$${inv.grandTotal.toFixed(2)}${!blocked?`<button class="gt-cp" onclick="copyText(this,'${inv.grandTotal.toFixed(2)}')">Copy</button>`:''}</div>
+    </div>`;
+  }
+
+  if(hasNoMatch)html+=`<div class="no-match-bar">⚠ One or more items not matched — verify item codes in Frontwave before entering</div>`;
+
+  card.innerHTML=html;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function navigate(dir){
+  const n=currentIdx+dir;
+  if(n<0)return;
+  if(n>=invoiceGroups.length){showToast('All invoices processed ✓');return;}
+  currentIdx=n;renderInvoice();
+}
+
+function copyText(btn,text){
+  navigator.clipboard.writeText(text).then(()=>{
+    const o=btn.textContent;btn.textContent='✓';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent=o;btn.classList.remove('ok');},1400);
+  });
+}
+
+function esc(s){return(s||'').replace(/'/g,"\'").replace(/"/g,'&quot;');}
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res({base64:e.target.result.split(',')[1],mimeType:file.type});r.onerror=()=>rej(new Error('Read failed'));r.readAsDataURL(file);});}
+function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block';}
+function hideError(){document.getElementById('errorBox').style.display='none';}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function resetAll(){uploadedFiles=[];invoiceGroups=[];currentIdx=0;document.getElementById('uploadZone').style.display='block';document.getElementById('fileQueue').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('invoiceViewer').style.display='none';document.getElementById('fileInput').value='';hideError();}
+
+initApp();
+</script>
+</body>
+</html>
