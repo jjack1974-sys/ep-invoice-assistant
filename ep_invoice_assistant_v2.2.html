@@ -525,292 +525,859 @@ function matchFromHeader(h){
   return scored[0]||null;
 }
 
-/* ─── ESSILOR ITEMS DATABASE ─── */
-const ESSILOR_ITEMS = [
-  // Stellest
-  {code:'LE2304', description:'(23) Essilor Stellest Airwear Crizal Rock'},
-  {code:'LE2680', description:'(26) Essilor Stellest Airwear Crizal Rock 2.0'},
-  {code:'LE2677', description:'(23) Essilor Stellest Tinted with Crizal Sun XProtect Airwear'},
-  // Eyezen
-  {code:'LE1763', description:'(22) Essilor Eyezen Blue UV Capture 1.56 Crizal Rock'},
-  {code:'LE1764', description:'(22) Essilor Eyezen Blue UV Capture 1.60 Crizal Rock'},
-  {code:'LE1765', description:'(22) Essilor Eyezen Blue UV Capture Airwear Crizal Rock'},
-  {code:'LE1766', description:'(22) Essilor Eyezen Blue UV Capture 1.67 Crizal Rock'},
-  {code:'LE1767', description:'(22) Essilor Eyezen Blue UV Capture 1.74 Crizal Rock'},
-  {code:'LE1768', description:'(22) Essilor Eyezen Transitions Signature 1.50 Crizal Rock Gen 8'},
-  {code:'LE1769', description:'(22) Essilor Eyezen Transitions Signature 1.60 Crizal Rock Gen 8'},
-  {code:'LE1770', description:'(22) Essilor Eyezen Transitions Signature Airwear Crizal Rock Gen 8'},
-  {code:'LE1771', description:'(22) Essilor Eyezen Transitions Signature 1.67 Crizal Rock Gen 8'},
-  {code:'LE1772', description:'(22) Essilor Eyezen Transitions Signature 1.74 Crizal Rock Gen 8'},
-  {code:'LE2682', description:'Essilor Eyezen Transitions Signature 1.74 Crizal Rock Gen S'},
-  // Crizal Sapphire
-  {code:'LE2149', description:'Crizal 1.60 Blue UV Capture with Crizal Sapphire HR (RX)'},
-  {code:'LE2427', description:'Essilor Crizal Sapphire'},
-  {code:'LE2683', description:'Essilor Crizal Sapphire HR'},
-  // Varilux X series
-  {code:'LE1411', description:'Essilor Varilux X Design 1.50 Crizal Sapphire uv'},
-  {code:'LE1414', description:'Essilor Varilux X Design 1.60 Crizal Sapphire UV'},
-  {code:'LE1415', description:'Essilor Varilux X Design Airwear Crizal Sapphire UV'},
-  {code:'LE1416', description:'Essilor Varilux X Design 1.67 Crizal Sapphire UV'},
-  {code:'LE2305', description:'(23) Varilux XR Track 1.50 Blue UV Capture'},
-  {code:'LE2306', description:'(23) Varilux XR Track 1.60 Blue UV Capture'},
-  {code:'LE2307', description:'(23) Varilux XR Track Airwear Blue UV Capture'},
-  {code:'LE2308', description:'(23) Varilux XR Track 1.67 Blue UV Capture'},
-  {code:'LE2317', description:'(23) Varilux XR FIT 1.50 Blue UV Capture'},
-  {code:'LE2318', description:'(23) Varilux XR FIT 1.60 Blue UV Capture'},
-  {code:'LE2319', description:'(23) Varilux XR FIT Airwear Blue UV Capture'},
-  {code:'LE2320', description:'(23) Varilux XR FIT 1.67 Blue UV Capture'},
-  {code:'LE2329', description:'(23) Varilux XR Design 1.50 Blue UV Capture'},
-  {code:'LE2330', description:'(23) Varilux XR Design 1.60 Blue UV Capture'},
-  {code:'LE2331', description:'(23) Varilux XR Design Airwear Blue UV Capture'},
-  {code:'LE2332', description:'(23) Varilux XR Design 1.67 Blue UV Capture'},
-  // Myopilux
-  {code:'LE2296', description:'(23) Essilor Myopilux Plus 1.50 Crizal Rock'},
-  {code:'LE2297', description:'(23) Essilor Myopilux Plus 1.60 Crizal Rock'},
-  {code:'LE2298', description:'(23) Essilor Myopilux Plus Airwear Crizal Rock'},
-  {code:'LE2299', description:'(23) Essilor Myopilux Plus 1.67 Crizal Rock'},
-  // Misc
-  {code:'LE1762', description:'Essilor Other'},
+/* ─── ESSILOR DATABASE (384 items from Frontwave) ─── */
+const ESSILOR_DB=[
+  {c:'LE0002',d:'Essilor Crizal UV 1.60'},
+  {c:'LE0004',d:'Essilor Crizal UV Airwear'},
+  {c:'LE0009',d:'Essilor Crizal UV 1.67'},
+  {c:'LE0010',d:'Essilor Crizal UV 1.74 (RX)'},
+  {c:'LE0011',d:'Essilor Crizal Transitions Signature 1.50 Crizal UV'},
+  {c:'LE0012',d:'Essilor Crizal Transitions Signature 1.60 Crizal UV'},
+  {c:'LE0013',d:'Essilor Crizal Transitions Signature Airwear Crizal UV'},
+  {c:'LE0014',d:'Essilor Crizal Transitions Signature 1.67 Crizal UV'},
+  {c:'LE0018',d:'Essilor Bifocal Round Segment 28 1.5 (uncoat)'},
+  {c:'LE0019',d:'Essilor Bifocal Round Segment 28 1.5 (Rx, uncoat)'},
+  {c:'LE0020',d:'Essilor Bifocal Flat Top 28 1.5 (Rx)'},
+  {c:'LE0021',d:'Essilor Bifocal Omega 1.5 (uncoat)'},
+  {c:'LE0022',d:'Essilor Crizal Bifocal Omega 1.5'},
+  {c:'LE0024',d:'Essilor Crizal UV Stylis A2 1.67 (Rx)'},
+  {c:'LE0196',d:'Essilor Crizal A2 Tinting UV 1.50'},
+  {c:'LE0197',d:'Essilor Crizal A2 Tinting UV 1.6'},
+  {c:'LE0353',d:'Essilor SV 1.50 Crizal UV (RX)'},
+  {c:'LE0354',d:'Essilor Crizal Airwear Advance 1.6 (Ext Cyl)'},
+  {c:'LE0356',d:'Essilor Crizal UV 1.50'},
+  {c:'LE0389',d:'Essilor Transitions VII (Grey/Brown/Graphite Green) Crizal UV 1.60 (RX)'},
+  {c:'LE0451',d:'Essilor SV 1.60 Crizal UV (RX)'},
+  {c:'LE0460',d:'Essilor Varilux Liberty Digital Crizal UV 1.50'},
+  {c:'LE0792',d:'Essilor Crizal Easy 1.67'},
+  {c:'LE0813',d:'Essilor Mineral (Glass) 1.80 HMC (RX)'},
+  {c:'LE0815',d:'Essilor Transitions XXTRActive Crizal UV 1.50'},
+  {c:'LE0816',d:'Essilor Transitions Signature XTRActive Crizal UV Airwear'},
+  {c:'LE0872',d:'Essilor SV 1.5 RX Crizal UV'},
+  {c:'LE0882',d:'Essilor Mineral (Glass) 1.8 HMC'},
+  {c:'LE0883',d:'Essilor SV Airwear Crizal UV (RX)'},
+  {c:'LE0884',d:'Essilor Organic SV 1.67 Crizal UV (RX)'},
+  {c:'LE0886',d:'Essilor Transitions VII (Grey/Brown/Graphite Green) Crizal UV 1.50 (RX)'},
+  {c:'LE0894',d:'Essilor Crizal Prevencia 1.56'},
+  {c:'LE0895',d:'Essilor Crizal Prevencia 1.60'},
+  {c:'LE0896',d:'Essilor Crizal Prevencia Airwear'},
+  {c:'LE0902',d:'Essilor Transitions Vll  Graphite Green 1.50 Crizal UV'},
+  {c:'LE0903',d:'Essilor Transitions Vll Graphite Green Airwear Crizal UV'},
+  {c:'LE0905',d:'Essilor Transitions Vll Graphite Green 1.60 (RX) Crizal UV'},
+  {c:'LE0908',d:'Essilor Liberty Digital Transitions Vll Graphite Green 1.50 Crizal UV'},
+  {c:'LE0909',d:'Essilor Liberty Digital Transitions Vll Graphite Green 1.60 Crizal UV'},
+  {c:'LE0910',d:'Essilor Liberty Digital Transitions Vll Graphite Green Airwear Crizal UV'},
+  {c:'LE0911',d:'Essilor Liberty Digital Transitions Vll Graphite Green 1.67 Crizal UV'},
+  {c:'LE0942',d:'Essilor SV XPERIO (Grey/Brown) 1.50 (RX) Crizal Sun UV'},
+  {c:'LE0943',d:'Essilor SV XPERIO (Grey/Brown) 1.60 (RX) Crizal Sun UV'},
+  {c:'LE0944',d:'Essilor SV XPERIO (Grey/Brown) Airwear (RX) Crizal Sun UV'},
+  {c:'LE0945',d:'Essilor SV XPERIO (Grey/Brown) 1.67 (RX) Crizal Sun UV'},
+  {c:'LE0958',d:'Essilor SV Stylistic Transitions Vll (Grey/Brown) 1.50 (RX) Crizal UV'},
+  {c:'LE0959',d:'Essilor SV Stylistic Transitions Vll Grey/Brown Airwear (RX) Crizal UV'},
+  {c:'LE0960',d:'Essilor SV Stylistic Transitions Vll Grey/Brown 1.67 (RX) Crizal UV'},
+  {c:'LE0961',d:'Essilor SV Stylistic XPERIO Grey/Brown 1.50 (RX) Crizal Sun UV'},
+  {c:'LE0962',d:'Essilor SV Stylistic XPERIO Grey/Brown Airwear (RX) Crizal Sun UV'},
+  {c:'LE0963',d:'Essilor SV Stylistic XPERIO Grey/Brown 1.67 (RX) Crizal Sun UV'},
+  {c:'LE0964',d:'Essilor SV Stylistic Clear 1.50 (RX) Crizal Sun UV'},
+  {c:'LE0965',d:'Essilor SV Stylistic Clear Airwear (RX) Crizal Sun UV'},
+  {c:'LE0966',d:'Essilor SV Stylistic Clear 1.67 (RX) Crizal Sun UV'},
+  {c:'LE0973',d:'Essilor Varilux Stylistic Clear 1.50 (Base 6/ Base 8)'},
+  {c:'LE0974',d:'Essilor Varilux Stylistic Clear Airwear (Base 6/ Base 8)'},
+  {c:'LE0975',d:'Essilor Varilux Stylistic Clear 1.67 (Base 6/ Base 8)'},
+  {c:'LE0982',d:'Essilor Prevencia 1.74 (RX)'},
+  {c:'LE1182',d:'Essilor Crizal Prevencia 1.67'},
+  {c:'LE1259',d:'Essilor Fit'},
+  {c:'LE1269',d:'Varilux Computer 3.0 1.50 Crizal UV'},
+  {c:'LE1270',d:'Varilux Computer 3.0 1.60 Crizal UV'},
+  {c:'LE1271',d:'Varilux Computer 3.0 Airwear Crizal UV'},
+  {c:'LE1272',d:'Varilux Computer 3.0 1.67 Crizal UV'},
+  {c:'LE1273',d:'Essilor Transitions VII Grey/ Brown/ Graphite Green'},
+  {c:'LE1274',d:'Essilor Xperio'},
+  {c:'LE1276',d:'Essilor 3D'},
+  {c:'LE1278',d:'Essilor Eyezen Crizal 1.56'},
+  {c:'LE1279',d:'Essilor Eyezen Crizal 1.60'},
+  {c:'LE1280',d:'Essilor Eyezen Crizal Airwear'},
+  {c:'LE1281',d:'Essilor Eyezen Crizal 1.56 RX'},
+  {c:'LE1282',d:'Essilor Eyezen Crizal 1.60 RX'},
+  {c:'LE1283',d:'Essilor Eyezen Crizal Airwear RX'},
+  {c:'LE1284',d:'Essilor Eyezen Crizal 1.67 RX'},
+  {c:'LE1285',d:'Essilor Eyezen Crizal 1.74 RX'},
+  {c:'LE1286',d:'Essilor Eyezen Transitions VII RX'},
+  {c:'LE1288',d:'Essilor Transitions VII (Grey/Brown/Graphite Green) Crizal UV Airwear (RX)'},
+  {c:'LE1289',d:'Essilor Transitions VII (Grey/Brown/Graphite Green) Crizal UV 1.67 (RX)'},
+  {c:'LE1290',d:'Essilor Transitions VII (Grey) Crizal UV 1.74 (RX)'},
+  {c:'LE1305',d:'Essilor Crizal UV 1.60 (RX)'},
+  {c:'LE1306',d:'Essilor Transitions XTRActive'},
+  {c:'LE1307',d:'Essilor Transitions Signature'},
+  {c:'LE1335',d:'Essilor Crizal UV 1.67 (RX)'},
+  {c:'LE1411',d:'Essilor Varilux X Design 1.50 Crizal Sapphire uv'},
+  {c:'LE1414',d:'Essilor Varilux X Design 1.60 Crizal Sapphire UV'},
+  {c:'LE1415',d:'Essilor Varilux X Design Airwear Crizal Sapphire UV'},
+  {c:'LE1416',d:'Essilor Varilux X Design 1.67 Crizal Sapphire UV'},
+  {c:'LE1417',d:'Essilor Varilux X Design Transitions Siganature 1.50 Crizal Sapphire UV'},
+  {c:'LE1418',d:'Essilor Varilux X Design Transitions Siganature 1.60 Crizal Sapphire UV'},
+  {c:'LE1419',d:'Essilor Varilux X Design Transitions Siganature Airwear Crizal Sapphire UV'},
+  {c:'LE1420',d:'Essilor Varilux X Design Transitions Siganature 1.67 Crizal Sapphire UV'},
+  {c:'LE1421',d:'Essilor Varilux X Design Transitions XTRActive 1.50 Crizal Sapphire UV'},
+  {c:'LE1422',d:'Essilor Varilux X Design Transitions XTRActive 1.60 Crizal Sapphire UV'},
+  {c:'LE1423',d:'Essilor Varilux X Design Transitions XTRActive Airwear Crizal Sapphire UV'},
+  {c:'LE1424',d:'Essilor Varilux X Design Transitions XTRActive 1.67 Crizal Sapphire UV'},
+  {c:'LE1425',d:'Essilor Varilux X Design Xperio 1.50 Crizal Sun UV'},
+  {c:'LE1426',d:'Essilor Varilux X Design Xperio Airwear Crizal Sun UV'},
+  {c:'LE1589',d:'Essilor Crizal Easy UV Airwear'},
+  {c:'LE1756',d:'Essilor RX Express'},
+  {c:'LE1762',d:'Essilor Other'},
+  {c:'LE1763',d:'(22) Essilor Eyezen Blue UV Capture 1.56 Crizal Rock'},
+  {c:'LE1764',d:'(22) Essilor Eyezen Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1765',d:'(22) Essilor Eyezen Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1766',d:'(22) Essilor Eyezen Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1767',d:'(22) Essilor Eyezen Blue UV Capture 1.74 Crizal Rock'},
+  {c:'LE1768',d:'(22) Essilor Eyezen Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1769',d:'(22) Essilor Eyezen Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1770',d:'(22) Essilor Eyezen Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1771',d:'(22) Essilor Eyezen Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1772',d:'(22) Essilor Eyezen Transitions Signature 1.74 Crizal Rock Gen 8'},
+  {c:'LE1773',d:'(22) Essilor Eyezen Style Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1774',d:'(22) Essilor Eyezen Style Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1775',d:'(22) Essilor Eyezen Style Transitions Signature 1.67 Crizal Rock'},
+  {c:'LE1776',d:'(22) Essilor Transitions Signature Stock 1.50 Crizal Rock'},
+  {c:'LE1777',d:'(22) Essilor Transitions Signature Stock 1.60 Crizal Rock Gen 8'},
+  {c:'LE1778',d:'(22) Essilor Transitions Signature Stock Airwear Crizal Rock Gen 8'},
+  {c:'LE1779',d:'(22) Essilor Transitions Signature Stock 1.67 Crizal Rock Gen 8'},
+  {c:'LE1782',d:'(22) Essilor Transitions Signature RX 1.50 Crizal Rock Gen 8'},
+  {c:'LE1783',d:'(22) Essilor Transitions Signature RX 1.60 Crizal Rock Gen 8'},
+  {c:'LE1784',d:'(22) Essilor Transitions Signature RX Airwear Crizal Rock Gen 8'},
+  {c:'LE1785',d:'(22) Essilor Transitions Signature RX 1.67 Crizal Rock Gen 8'},
+  {c:'LE1786',d:'(22) Essilor Transitions Signature RX 1.74 Crizal Rock Gen 8'},
+  {c:'LE1787',d:'(22) Essilor Style Transitions Signature RX 1.50 Crizal Rock Gen 8'},
+  {c:'LE1788',d:'(22) Essilor Style Transitions Signature RX 1.60 Crizal Rock Gen 8'},
+  {c:'LE1789',d:'(22) Essilor Style Transitions Signature RX 1.67 Crizal Rock Gen 8'},
+  {c:'LE1806',d:'(22) Essilor Blue UV Capture Stock 1.56 Crizal Rock'},
+  {c:'LE1807',d:'(22) Essilor Blue UV Capture Stock 1.60 Crizal Rock'},
+  {c:'LE1809',d:'(22) Essilor Blue UV Capture Stock 1.67 Crizal Rock'},
+  {c:'LE1810',d:'(22) Essilor Blue UV Capture RX 1.50 Crizal Rock'},
+  {c:'LE1811',d:'(22) Essilor Blue UV Capture RX 1.60 Crizal Rock'},
+  {c:'LE1812',d:'(22) Essilor Blue UV Capture RX Airwear Crizal Rock'},
+  {c:'LE1813',d:'(22) Essilor Blue UV Capture RX 1.67 Crizal Rock'},
+  {c:'LE1814',d:'(22) Essilor Blue UV Capture RX 1.74 Crizal Rock'},
+  {c:'LE1815',d:'(22) Essilor Myopilux Plus 1.50 Crizal Rock'},
+  {c:'LE1816',d:'(22) Essilor Myopilux Plus 1.60 Crizal Rock'},
+  {c:'LE1817',d:'(22) Essilor Myopilux Plus Airwear Crizal Rock'},
+  {c:'LE1818',d:'(22) Essilor Myopilux Plus 1.67 Crizal Rock'},
+  {c:'LE1819',d:'(22) Essilor Myopilux Plus Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1820',d:'(22) Essilor Myopilux Plus Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1821',d:'(22) Essilor Myopilux Plus Transitions Signature Airwear Crizal Rock'},
+  {c:'LE1822',d:'(22) Essilor Myopilux Plus Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1823',d:'(22) Essilor Myopilux Max Airwear Crizal Rock'},
+  {c:'LE1830',d:'(22) Essilor Varilux X Design Blue UV Capture 1.50 Crizal Rock'},
+  {c:'LE1831',d:'(22) Essilor Varilux X Design Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1832',d:'(22) Essilor Varilux X Design Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1833',d:'(22) Essilor Varilux X Design Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1834',d:'(22) Essilor Varilux X Design Blue UV Capture 1.74 Crizal Rock'},
+  {c:'LE1835',d:'(22) Essilor Varilux X Design Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1836',d:'(22) Essilor Varilux X Design Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1837',d:'(22) Essilor Varilux X Design Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1838',d:'(22) Essilor Varilux X Design Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1839',d:'(22) Essilor Varilux X Design Transitions Signature 1.74 Crizal Rock Gen 8'},
+  {c:'LE1840',d:'(22) Essilor Varilux X Design Style Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1841',d:'(22) Essilor Varilux X Design Style Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1846',d:'(22) Essilor Varilux Physio 3.0  Blue UV Capture 1.50 Crizal Rock'},
+  {c:'LE1847',d:'(22) Essilor Varilux Physio 3.0  Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1848',d:'(22) Essilor Varilux Physio 3.0  Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1849',d:'(22) Essilor Varilux Physio 3.0  Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1850',d:'(22) Essilor Varilux Physio 3.0  Smart Blue Filter 1.74 Crizal Rock'},
+  {c:'LE1851',d:'(22) Essilor Varilux Physio 3.0  Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1852',d:'(22) Essilor Varilux Physio 3.0  Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1853',d:'(22) Essilor Varilux Physio 3.0  Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1854',d:'(22) Essilor Varilux Physio 3.0 Style Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1855',d:'(22) Essilor Varilux Physio 3.0  Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1856',d:'(22) Essilor Varilux Physio 3.0 Style Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1859',d:'(22) Essilor Varilux Comfort Max Blue UV Capture 1.50 Crizal Rock'},
+  {c:'LE1860',d:'(22) Essilor Varilux Comfort Max Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1861',d:'(22) Essilor Varilux Comfort Max Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1862',d:'(22) Essilor Varilux Comfort Max Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1863',d:'(22) Essilor Varilux Comfort Max Tansitions Signature 1.50 Crizal Rock'},
+  {c:'LE1864',d:'(22) Essilor Varilux Comfort Max Tansitions Signature 1.60 Crizal Rock'},
+  {c:'LE1865',d:'(22) Essilor Varilux Comfort Max Tansitions Signature Airwear Crizal Rock'},
+  {c:'LE1866',d:'(22) Essilor Varilux Comfort Max Tansitions Signature 1.67 Crizal Rock'},
+  {c:'LE1867',d:'(22) Essilor Varilux Comfort Max Style Tansitions Signature 1.60 Crizal Rock'},
+  {c:'LE1868',d:'(22) Essilor Varilux Comfort Max Style Tansitions Signature 1.67 Crizal Rock'},
+  {c:'LE1870',d:'(22) Essilor Varilux Comfort Max Tansitions XTRActive Airwear Crizal Rock'},
+  {c:'LE1875',d:'(22) Essilor Varilux Liberty 3.0 Blue UV Capture1.60 Crizal Rock'},
+  {c:'LE1876',d:'(22) Essilor Varilux Liberty 3.0 Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1877',d:'(22) Essilor Varilux Liberty 3.0 Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1878',d:'(22) Essilor Varilux Liberty 3.0 Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1879',d:'(22) Essilor Varilux Liberty 3.0 Transitions Signature Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1880',d:'(22) Essilor Varilux Liberty 3.0 Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1881',d:'(22) Essilor Varilux Liberty 3.0 Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1882',d:'(22) Essilor Varilux Digitime 3.0 Blue UV Capture 1.50 Crizal Rock'},
+  {c:'LE1883',d:'(22) Essilor Varilux Digitime 3.0 Blue UV Capture 1.60 Crizal Rock'},
+  {c:'LE1884',d:'(22) Essilor Varilux Digitime 3.0 Blue UV Capture Airwear Crizal Rock'},
+  {c:'LE1885',d:'(22) Essilor Varilux Digitime 3.0 Blue UV Capture 1.67 Crizal Rock'},
+  {c:'LE1886',d:'(22) Essilor Varilux Digitime 3.0 Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1887',d:'(22) Essilor Varilux Digitime 3.0 Transitions Signature 1.60 Crizal Rock Gen 8'},
+  {c:'LE1888',d:'(22) Essilor Varilux Digitime 3.0 Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1889',d:'(22) Essilor Varilux Digitime 3.0 Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1890',d:'(22) Essilor Stylistic 1.50 Crizal Rock'},
+  {c:'LE1891',d:'(22) Essilor Stylistic Airwear Blue UV Capture'},
+  {c:'LE1892',d:'(22) Essilor Stylistic 1.67 Crizal Rock'},
+  {c:'LE1893',d:'(22) Essilor Stylistic Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1894',d:'(22) Essilor Stylistic Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1895',d:'(22) Essilor Stylistic Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1896',d:'(22) Essilor Varilux Stylistic 1.50 Crizal Rock'},
+  {c:'LE1897',d:'(22) Essilor Varilux Stylistic Airwear Crizal Rock'},
+  {c:'LE1898',d:'(22) Essilor Varilux Stylistic 1.67 Crizal Rock'},
+  {c:'LE1899',d:'(22) Essilor Varilux Stylistic Transitions Signature 1.50 Crizal Rock Gen 8'},
+  {c:'LE1900',d:'(22) Essilor Varilux Stylistic Transitions Signature Airwear Crizal Rock Gen 8'},
+  {c:'LE1901',d:'(22) Essilor Varilux Stylistic Transitions Signature 1.67 Crizal Rock Gen 8'},
+  {c:'LE1906',d:'(22) Essilor Xperio 1.50 Blue UV Capture'},
+  {c:'LE1907',d:'(22) Essilor Xperio 1.60 Blue UV Capture'},
+  {c:'LE1909',d:'(22) Essilor Stylistic 1.50 Blue UV Capture'},
+  {c:'LE1910',d:'(22) Essilor Stylistic 1.67 Blue UV Capture'},
+  {c:'LE1911',d:'(22) Essilor Varilux Stylistic  1.50 Crizal Sapphire UV'},
+  {c:'LE1912',d:'(22) Essilor Varilux Stylistic 1.67 Crizal Sapphire UV'},
+  {c:'LE1913',d:'(22) Essilor Varilux X Design Xperio 1.50 Blue UV Capture'},
+  {c:'LE1914',d:'(22) Essilor Varilux X Design Xperio 1.60 Blue UV Capture'},
+  {c:'LE1915',d:'(22) Essilor Varilux X Design Xperio 1.67 Blue UV Capture'},
+  {c:'LE1916',d:'(22) Essilor Varilux Physio 3.0 Xperio 1.50 Blue UV Capture'},
+  {c:'LE1917',d:'(22) Essilor Varilux Physio 3.0 Xperio 1.60 Blue UV Capture'},
+  {c:'LE1918',d:'(22) Essilor Varilux Physio 3.0 Xperio 1.67 Blue UV Capture'},
+  {c:'LE1920',d:'(20) Essilor Varilux Comfort Max Essicolor 1.60 Crizal Sun UV'},
+  {c:'LE1925',d:'(22) Essilor Xperio 1.50 Polarized'},
+  {c:'LE1926',d:'(22) Essilor Xperio 1.60 Polarized'},
+  {c:'LE1927',d:'(22) Essilor Xperio Airwear Polarized'},
+  {c:'LE1928',d:'(22) Essilor Xperio 1.67 Polarized'},
+  {c:'LE1929',d:'(22) Essilor Stylistic Xperio 1.50 Polarized SV'},
+  {c:'LE1930',d:'(22) Essilor Stylistic Xperio Airwear Polarized SV'},
+  {c:'LE1931',d:'(22) Essilor Stylistic Xperio 1.67 Polarized SV'},
+  {c:'LE1932',d:'(20) Essilor Varilux X Design Xperio 1.50 Polarized'},
+  {c:'LE1933',d:'(20) Essilor Varilux X Design Xperio Airwear Polarized'},
+  {c:'LE1934',d:'(22) Essilor Varilux Physio 3.0 Xperio 1.50 Polarized'},
+  {c:'LE1935',d:'(22) Essilor Varilux Physio 3.0 Xperio Airwear Polarized'},
+  {c:'LE1936',d:'(22) Essilor Varilux Physio 3.0 Xperio 1.67 Polarized'},
+  {c:'LE1937',d:'(22) Essilor Varilux Comfort Max Xperio 1.50 Polarized'},
+  {c:'LE1938',d:'(22) Essilor Varilux Comfort Max Xperio Airwear Polarized'},
+  {c:'LE1939',d:'(22) Essilor Varilux Comfort Max Xperio 1.67 Polarized'},
+  {c:'LE1940',d:'(22) Essilor Varilux Stylistic Xperio 1.50 Polarized'},
+  {c:'LE1941',d:'(22) Essilor Varilux Stylistic Xperio Airwear Polarized'},
+  {c:'LE1942',d:'(22) Essilor Varilux Stylistic Xperio 1.67 Polarized'},
+  {c:'LE1982',d:'(22) Essilor Varilux X Track Blue UV Capture Airwear'},
+  {c:'LE1984',d:'(22) Essilor Varilux X Track Blue UV Capture 1.50'},
+  {c:'LE1985',d:'(22) Essilor Varilux X Track Blue UV Capture 1.60'},
+  {c:'LE1986',d:'(22) Essilor Varilux X Track Blue UV Capture 1.67'},
+  {c:'LE1987',d:'(22) Essilor Varilux X Track Smart Blue Filter 1.74'},
+  {c:'LE2061',d:'(22) Essilor Varilux X Track 1.50 Transitions Signature Gen 8'},
+  {c:'LE2062',d:'(22) Essilor Varilux X Track 1.60 Transitions Signature Gen 8'},
+  {c:'LE2063',d:'(22) Essilor Varilux X Track Airwear Transitions Signature Gen 8'},
+  {c:'LE2064',d:'(22) Essilor Varilux X Track 1.67 Transitions Signature Gen 8'},
+  {c:'LE2065',d:'(22) Essilor Varilux X Track 1.74 Transitions Signature Gen 8'},
+  {c:'LE2066',d:'(22) Essilor Varilux X Track 1.60 Transitions Signature Gen 8 (Style)'},
+  {c:'LE2067',d:'(22) Essilor Varilux X Track 1.67 Transitions Signature Gen 8 (Style)'},
+  {c:'LE2070',d:'(20) Essilor Varilux X Track Airwear Transitions XTRActive'},
+  {c:'LE2071',d:'(20) Essilor Varilux X Track 1.67 Transitions XTRActive'},
+  {c:'LE2149',d:'Crizal 1.60 Blue UV Capture with Crizal Sapphire HR (RX)'},
+  {c:'LE2256',d:'Crizal SV 1.67 Blue UV Capture with Crizal Sappire HR'},
+  {c:'LE2265',d:'(23) Essilor Crizal Sapphire SV 1.56 (Stk) Transitions Signature Gen 8'},
+  {c:'LE2266',d:'(23) Essilor Crizal  Sapphire SV 1.60 (Stk) Transitions Signature Gen 8'},
+  {c:'LE2267',d:'(23) Essilor Crizal Sapphire SV Airwear (Stk) Transitions Signature Gen 8'},
+  {c:'LE2268',d:'(23) Essilor Crizal Sapphire SV 1.67 (Stk) Transitions Signature Gen 8'},
+  {c:'LE2269',d:'(23) Essilor Crizal Rock SV 1.50 (RX) Transitions Signature Gen 8'},
+  {c:'LE2270',d:'(23) Essilor Crizal Rock SV 1.60 (RX) Transitions Signature Gen 8'},
+  {c:'LE2271',d:'(23) Essilor Crizal Rock SV Airwear (RX) Transitions Signature Gen 8'},
+  {c:'LE2272',d:'(23) Essilor Crizal Rock SV 1.67 (RX) Transitions Signature Gen 8'},
+  {c:'LE2273',d:'(23) Essilor Crizal Rock SV 1.74 (RX) Transitions Signature Gen 8'},
+  {c:'LE2274',d:'(23) Essilor Crizal Rock Style SV 1.50 (RX) Transitions Signature Gen 8'},
+  {c:'LE2275',d:'(23) Essilor Crizal Rock Style SV 1.67 (RX) Transitions Signature Gen 8'},
+  {c:'LE2276',d:'(23) Essilor Crizal Rock SV 1.50 (RX) Transitions XTRActive'},
+  {c:'LE2277',d:'(23) Essilor Crizal Rock SV 1.60 (RX) Transitions XTRActive'},
+  {c:'LE2278',d:'(23) Essilor Crizal Rock SV 1.67 (RX) Transitions XTRActive'},
+  {c:'LE2279',d:'(23) Essilor Crizal Rock SV 1.56 (Stk) Blue UV Capture'},
+  {c:'LE2280',d:'(23) Essilor Crizal Rock SV 1.60 (Stk) Blue UV Capture'},
+  {c:'LE2281',d:'(23) Essilor Crizal Rock SV 1.67 (Stk) Blue UV Capture'},
+  {c:'LE2282',d:'(23) Essilor Crizal Rock SV 1.50 (RX) Blue UV Capture'},
+  {c:'LE2283',d:'(23) Essilor Crizal Rock SV 1.60 (RX) Blue UV Capture'},
+  {c:'LE2284',d:'(23) Essilor Crizal Rock SV Airwear (RX) Blue UV Capture'},
+  {c:'LE2285',d:'(23) Essilor Crizal Rock SV 1.67 (RX) Blue UV Capture'},
+  {c:'LE2286',d:'(23) Essilor Crizal Sapphire HR SV 1.56 (Stk) Blue UV Capture'},
+  {c:'LE2287',d:'(23) Essilor Crizal Sapphire HR SV 1.60 (Stk) Blue UV Capture'},
+  {c:'LE2288',d:'(23) Essilor Crizal Sapphire HR SV Airwear (Stk) Blue UV Capture'},
+  {c:'LE2289',d:'(23) Essilor Crizal Sapphire HR SV 1.67 (Stk) Blue UV Capture'},
+  {c:'LE2290',d:'(23) Essilor Crizal Sapphire HR SV 1.74 (Stk) Blue UV Capture'},
+  {c:'LE2291',d:'(23) Essilor Crizal Sapphire HR SV 1.50 (RX) Blue UV Capture'},
+  {c:'LE2292',d:'(23) Essilor Crizal Sapphire HR SV 1.60 (RX) Blue UV Capture'},
+  {c:'LE2293',d:'(23) Essilor Crizal Sapphire HR SV Airwear (RX) Blue UV Capture'},
+  {c:'LE2294',d:'(23) Essilor Crizal Sapphire HR SV 1.67 (RX) Blue UV Capture'},
+  {c:'LE2295',d:'(23) Essilor Crizal Sapphire HR SV 1.74 (RX) Blue UV Capture'},
+  {c:'LE2296',d:'(23) Essilor Myopilux Plus 1.50 Crizal Rock'},
+  {c:'LE2297',d:'(23) Essilor Myopilux Plus 1.60 Crizal Rock'},
+  {c:'LE2298',d:'(23) Essilor Myopilux Plus Airwear Crizal Rock'},
+  {c:'LE2299',d:'(23) Essilor Myopilux Plus 1.67 Crizal Rock'},
+  {c:'LE2300',d:'(23) Essilor Myopilux Plus 1.60 Transitions Signature Gen 8'},
+  {c:'LE2301',d:'(23) Essilor Myopilux Plus Airwear Transitions Signature Gen 8'},
+  {c:'LE2302',d:'(23) Essilor Myopilux Plus 1.67 Transitions Signature Gen 8'},
+  {c:'LE2303',d:'(23) Essilor Myopilux Max Airwear Crizal Rock'},
+  {c:'LE2304',d:'(23) Essilor Stellest Airwear Crizal Rock'},
+  {c:'LE2305',d:'(23) Varilux XR Track 1.50 Blue UV Capture'},
+  {c:'LE2306',d:'(23) Varilux XR Track 1.60 Blue UV Capture'},
+  {c:'LE2307',d:'(23) Varilux XR Track Airwear Blue UV Capture'},
+  {c:'LE2308',d:'(23) Varilux XR Track 1.67 Blue UV Capture'},
+  {c:'LE2309',d:'(23) Varilux XR Track 1.74 Smart Blue Filter'},
+  {c:'LE2310',d:'(23) Varilux XR Track 1.50  Transitions Signature Gen 8'},
+  {c:'LE2311',d:'(23) Varilux XR Track 1.60  Transitions Signature Gen 8'},
+  {c:'LE2312',d:'(23) Varilux XR Track Airwear Transitions Signature Gen 8'},
+  {c:'LE2313',d:'(23) Varilux XR Track 1.67 Transitions Signature Gen 8'},
+  {c:'LE2314',d:'(23) Varilux XR Track 1.74 Transitions Signature Gen 8'},
+  {c:'LE2315',d:'(23) Varilux XR Track 1.60 Style Transitions Signature Gen 8'},
+  {c:'LE2316',d:'(23) Varilux XR Track 1.67 Style Transitions Signature Gen 8'},
+  {c:'LE2317',d:'(23) Varilux XR FIT 1.50 Blue UV Capture'},
+  {c:'LE2318',d:'(23) Varilux XR FIT 1.60 Blue UV Capture'},
+  {c:'LE2319',d:'(23) Varilux XR FIT Airwear Blue UV Capture'},
+  {c:'LE2320',d:'(23) Varilux XR FIT 1.67 Blue UV Capture'},
+  {c:'LE2321',d:'(23) Varilux XR FIT 1.74 Smart Blue Filter'},
+  {c:'LE2322',d:'(23) Varilux XR FIT 1.50 Transitions Signature Gen 8'},
+  {c:'LE2323',d:'(23) Varilux XR FIT 1.60 Transitions Signature Gen 8'},
+  {c:'LE2324',d:'(23) Varilux XR FIT Airwear Transitions Signature Gen 8'},
+  {c:'LE2325',d:'(23) Varilux XR FIT 1.67 Transitions Signature Gen 8'},
+  {c:'LE2326',d:'(23) Varilux XR FIT 1.74 Transitions Signature Gen 8'},
+  {c:'LE2327',d:'(23) Varilux XR FIT 1.60 Style Transitions Signature Gen 8'},
+  {c:'LE2328',d:'(23) Varilux XR FIT 1.67 Style Transitions Signature Gen 8'},
+  {c:'LE2329',d:'(23) Varilux XR Design 1.50 Blue UV Capture'},
+  {c:'LE2330',d:'(23) Varilux XR Design 1.60 Blue UV Capture'},
+  {c:'LE2331',d:'(23) Varilux XR Design Airwear Blue UV Capture'},
+  {c:'LE2332',d:'(23) Varilux XR Design 1.67 Blue UV Capture'},
+  {c:'LE2333',d:'(23) Varilux XR Design 1.74 Smart Blue Filter'},
+  {c:'LE2334',d:'(23) Varilux XR Design 1.50 Transitions Signature Gen 8'},
+  {c:'LE2335',d:'(23) Varilux XR Design 1.60 Transitions Signature Gen 8'},
+  {c:'LE2336',d:'(23) Varilux XR Design Airwear Transitions Signature Gen 8'},
+  {c:'LE2337',d:'(23) Varilux XR Design 1.67 Transitions Signature Gen 8'},
+  {c:'LE2338',d:'(23) Varilux XR Design 1.74 Transitions Signature Gen 8'},
+  {c:'LE2339',d:'(23) Varilux XR Design 1.60 Style Transitions Signature Gen 8'},
+  {c:'LE2340',d:'(23) Varilux XR Design 1.67 Style Transitions Signature Gen 8'},
+  {c:'LE2341',d:'(23) Varilux Physio 3.0 1.50 Blue UV Capture'},
+  {c:'LE2342',d:'(23) Varilux Physio 3.0 1.60 Blue UV Capture'},
+  {c:'LE2343',d:'(23) Varilux Physio 3.0 Airwear Blue UV Capture'},
+  {c:'LE2344',d:'(23) Varilux Physio 3.0 1.67 Blue UV Capture'},
+  {c:'LE2345',d:'(23) Varilux Physio 3.0 1.74 Smart Blue Filter'},
+  {c:'LE2346',d:'(23) Varilux Physio 3.0 1.50 Transitions Signature Gen 8'},
+  {c:'LE2347',d:'(23) Varilux Physio 3.0 1.60 Transitions Signature Gen 8'},
+  {c:'LE2348',d:'(23) Varilux Physio 3.0 Airwear Transitions Signature Gen 8'},
+  {c:'LE2349',d:'(23) Varilux Physio 3.0 1.67 Transitions Signature Gen 8'},
+  {c:'LE2350',d:'(23) Varilux Physio 3.0 1.60 Style Transitions Signature Gen 8'},
+  {c:'LE2351',d:'(23) Varilux Physio 3.0 1.67 Style Transitions Signature Gen 8'},
+  {c:'LE2352',d:'(23) Varilux Physio 3.0 1.50 Transitions XTRActive'},
+  {c:'LE2353',d:'(23) Varilux Physio 3.0 1.60 Transitions XTRActive'},
+  {c:'LE2354',d:'(23) Varilux Physio 3.0 1.67 Transitions XTRActive'},
+  {c:'LE2355',d:'(23) Varilux Comfort Max 1.50 Blue UV Capture'},
+  {c:'LE2356',d:'(23) Varilux Comfort Max 1.60 Blue UV Capture'},
+  {c:'LE2357',d:'(23) Varilux Comfort Max Airwear Blue UV Capture'},
+  {c:'LE2358',d:'(23) Varilux Comfort Max 1.67 Blue UV Capture'},
+  {c:'LE2359',d:'(23) Varilux Comfort Max 1.50 Transitions Signature Gen 8'},
+  {c:'LE2360',d:'(23) Varilux Comfort Max 1.60 Transitions Signature Gen 8'},
+  {c:'LE2361',d:'(23) Varilux Comfort Max Airwear Transitions Signature Gen 8'},
+  {c:'LE2362',d:'(23) Varilux Comfort Max 1.67 Transitions Signature Gen 8'},
+  {c:'LE2363',d:'(23) Varilux Comfort Max 1.50 Style Transitions Signature Gen 8'},
+  {c:'LE2364',d:'(23) Varilux Comfort Max 1.60 Style Transitions Signature Gen 8'},
+  {c:'LE2365',d:'(23) Varilux Comfort Max 1.67 Style Transitions Signature Gen 8'},
+  {c:'LE2366',d:'(23) Varilux Comfort Max 1.50 Transitions XTRActive'},
+  {c:'LE2367',d:'(23) Varilux Comfort Max 1.60 Transitions XTRActive'},
+  {c:'LE2368',d:'(23) Varilux Comfort Max 1.67 Transitions XTRActive'},
+  {c:'LE2369',d:'(23) Varilux Liberty 3.0 1.50 Blue UV Capture'},
+  {c:'LE2370',d:'(23) Varilux Liberty 3.0 1.60 Blue UV Capture'},
+  {c:'LE2371',d:'(23) Varilux Liberty 3.0 Airwear Blue UV Capture'},
+  {c:'LE2372',d:'(23) Varilux Liberty 3.0 1.67 Blue UV Capture'},
+  {c:'LE2373',d:'(23) Varilux Liberty 3.0 1.50 Transitions Signature Gen 8'},
+  {c:'LE2374',d:'(23) Varilux Liberty 3.0 1.60 Transitions Signature Gen 8'},
+  {c:'LE2375',d:'(23) Varilux Liberty 3.0 Airwear Transitions Signature Gen 8'},
+  {c:'LE2376',d:'(23) Varilux Liberty 3.0 1.67 Transitions Signature Gen 8'},
+  {c:'LE2377',d:'(23) Varilux Liberty 3.0 1.50 Transitions XTRActive'},
+  {c:'LE2378',d:'(23) Varilux Liberty 3.0 1.60 Transitions XTRActive'},
+  {c:'LE2379',d:'(23) Varilux Liberty 3.0 1.67 Transitions XTRActive'},
+  {c:'LE2380',d:'(23) Crizal Stylistic 1.50 Blue UV Capture'},
+  {c:'LE2381',d:'(23) Crizal Stylistic Airwear Blue UV Capture'},
+  {c:'LE2382',d:'(23) Crizal Stylistic 1.67 Blue UV Capture'},
+  {c:'LE2383',d:'(23) Crizal Stylistic 1.50 Transitions Signature Gen 8'},
+  {c:'LE2384',d:'(23) Crizal Stylistic Airwear Transitions Signature Gen 8'},
+  {c:'LE2385',d:'(23) Crizal Stylistic 1.67 Transitions Signature Gen 8'},
+  {c:'LE2386',d:'(23) Varilux Stylistic 1.50'},
+  {c:'LE2387',d:'(23) Varilux Stylistic Airwear'},
+  {c:'LE2388',d:'(23) Varilux Stylistic 1.67'},
+  {c:'LE2389',d:'(23) Varilux Stylistic 1.50 Transitions Signature Gen 8'},
+  {c:'LE2390',d:'(23) Varilux Stylistic Airwear Transitions Signature Gen 8'},
+  {c:'LE2391',d:'(23) Varilux Stylistic 1.67 Transitions Signature Gen 8'},
+  {c:'LE2421',d:'(23) Varilux XR Track 1.50 Xperio Polarized'},
+  {c:'LE2422',d:'(23) Varilux XR Track Airwear Xperio Polarized'},
+  {c:'LE2427',d:'Essilor Crizal Sapphire'},
+  {c:'LE2677',d:'(23) Essilor Stellest Tinted with Crizal Sun XProtect Airwear'},
+  {c:'LE2680',d:'(26) Essilor Stellest Airwear Crizal Rock 2.0'},
+  {c:'LE2682',d:'Essilor Eyezen Transitions Signature 1.74 Crizal Rock Gen S'},
+  {c:'LE2683',d:'Essilor Crizal Sapphire HR'},
 ];
 
-/* ─── ESSILOR HEADER MAP ─── */
-const ESSILOR_HEADER_MAP = [
-  // Stellest 2.0
-  {p:/stellest\s+2\.0/i, c:'LE2680'},
-  {p:/stellest.*2\.0/i, c:'LE2680'},
-  // Stellest 1.0 / standard
-  {p:/stellest/i, c:'LE2304'},
-  // Eyezen Blue UV Capture by index
-  {p:/eyezen.*blue.*uv.*1\.74/i, c:'LE1767'},
-  {p:/eyezen.*blue.*uv.*1\.67/i, c:'LE1766'},
-  {p:/eyezen.*blue.*uv.*1\.60/i, c:'LE1764'},
-  {p:/eyezen.*blue.*uv.*airwear/i, c:'LE1765'},
-  {p:/eyezen.*blue.*uv.*1\.56/i, c:'LE1763'},
-  {p:/eyezen.*blue.*uv.*1\.6[^7]/i, c:'LE1764'},
-  // Eyezen Transitions
-  {p:/eyezen.*transitions.*1\.74/i, c:'LE1772'},
-  {p:/eyezen.*transitions.*1\.67/i, c:'LE1771'},
-  {p:/eyezen.*transitions.*1\.60/i, c:'LE1769'},
-  {p:/eyezen.*transitions.*airwear/i, c:'LE1770'},
-  {p:/eyezen.*transitions.*1\.50/i, c:'LE1768'},
-  // Varilux XR Track
-  {p:/varilux\s+xr\s+track.*1\.67/i, c:'LE2308'},
-  {p:/varilux\s+xr\s+track.*1\.60/i, c:'LE2306'},
-  {p:/varilux\s+xr\s+track.*airwear/i, c:'LE2307'},
-  {p:/varilux\s+xr\s+track.*1\.50/i, c:'LE2305'},
-  // Varilux XR FIT
-  {p:/varilux\s+xr\s+fit.*1\.67/i, c:'LE2320'},
-  {p:/varilux\s+xr\s+fit.*1\.60/i, c:'LE2318'},
-  {p:/varilux\s+xr\s+fit.*airwear/i, c:'LE2319'},
-  {p:/varilux\s+xr\s+fit.*1\.50/i, c:'LE2317'},
-  // Varilux XR Design
-  {p:/varilux\s+xr\s+design.*1\.67/i, c:'LE2332'},
-  {p:/varilux\s+xr\s+design.*1\.60/i, c:'LE2330'},
-  {p:/varilux\s+xr\s+design.*airwear/i, c:'LE2331'},
-  {p:/varilux\s+xr\s+design.*1\.50/i, c:'LE2329'},
-  // Fallback
-  {p:/essilor/i, c:'LE1762'},
+const ZEISS_DB=[
+  {c:'LE0088',d:'Zeiss SV 1.6 LT'},
+  {c:'LE0089',d:'Zeiss SV 1.67 LT'},
+  {c:'LE0094',d:'Zeiss Single Vision Transitions VI 1.50 (RX)'},
+  {c:'LE0103',d:'Zeiss Single Vision Glass 1.60'},
+  {c:'LE0104',d:'Zeiss Single Vision Glass 1.70'},
+  {c:'LE0105',d:'Zeiss Single Vision Glass 1.80'},
+  {c:'LE0106',d:'Zeiss Single Vision Glass 1.90'},
+  {c:'LE0331',d:'Zeiss SV Individual Photofusion BlueGuard DuraVision 1.50'},
+  {c:'LE0332',d:'Zeiss SV Individual Photofusion BlueGuard DuraVision 1.60'},
+  {c:'LE0333',d:'Zeiss SV Individual Photofusion BlueGuard DuraVision 1.67'},
+  {c:'LE0338',d:'Zeiss Photofusion Grey 1.6 LT'},
+  {c:'LE0339',d:'Zeiss Photofusion Grey 1.67 LT'},
+  {c:'LE0461',d:'Zeiss SV 1.56 LT'},
+  {c:'LE0607',d:'Zeiss Progressive Superb Asiana 1.50 LT'},
+  {c:'LE0608',d:'Zeiss SV Individual DuraVision UV 1.50'},
+  {c:'LE0609',d:'Zeiss SV Individual DuraVision UV 1.60'},
+  {c:'LE0610',d:'Zeiss SV Individual DuraVision UV 1.67'},
+  {c:'LE0613',d:'Zeiss Single Vision Superb 1.50 LT'},
+  {c:'LE0614',d:'Zeiss Single Vision Superb 1.60 LT'},
+  {c:'LE0615',d:'Zeiss Single Vision Superb 1.67 LT'},
+  {c:'LE0616',d:'Zeiss Single Vision Superb Photofusion 1.50 LT'},
+  {c:'LE0617',d:'Zeiss Single Vision Superb Photofusion 1.60 LT'},
+  {c:'LE0618',d:'Zeiss Single Vision Superb Photofusion 1.67 LT'},
+  {c:'LE0619',d:'Zeiss SV 1.50 Photofusion DuraVision Platinum UV (RX)'},
+  {c:'LE0620',d:'Zeiss SV 1.60 Photofusion DuraVision Platinum UV (RX)'},
+  {c:'LE0621',d:'Zeiss SV 1.67 Photofusion DuraVision Platinum UV (RX)'},
+  {c:'LE0622',d:'Zeiss Single Vision SGL Polarised Brown 70%/80%/90% 1.50 LT'},
+  {c:'LE0623',d:'Zeiss Single Vision SGL Polarised G15 85% 1.50 LT'},
+  {c:'LE0624',d:'Zeiss Single Vision SGL Polarised Grey 85% 1.50 LT'},
+  {c:'LE0625',d:'Zeiss Officelens Plus BlueProtect 1.50'},
+  {c:'LE0626',d:'Zeiss Officelens Plus BlueProtect 1.60'},
+  {c:'LE0627',d:'Zeiss Officelens Plus BlueProtect 1.67'},
+  {c:'LE0628',d:'Zeiss Officelens Superb 1.50 Duravision BlueProtect'},
+  {c:'LE0629',d:'Zeiss Officelens Superb 1.60 Duravision BlueProtect'},
+  {c:'LE0630',d:'Zeiss Officelens Superb 1.67 Duravision BlueProtect'},
+  {c:'LE0631',d:'Zeiss Bifocal Duopal (Curve-Top 28mm) 1.50'},
+  {c:'LE0632',d:'Zeiss Bifocal Duopal (Curve-Top 28mm) Transition BRN 1.50'},
+  {c:'LE0633',d:'Zeiss Progressive Individual 2 Duravision UV 1.50'},
+  {c:'LE0634',d:'Zeiss Progressive Individual 2 Duravision UV 1.60'},
+  {c:'LE0635',d:'Zeiss Progressive Individual 2 Duravision UV 1.67'},
+  {c:'LE0636',d:'Zeiss Progressive Individual 2 Duravision UV 1.74'},
+  {c:'LE0637',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard 1.50'},
+  {c:'LE0638',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard 1.60'},
+  {c:'LE0639',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard 1.67'},
+  {c:'LE0640',d:'Zeiss Progressive Precision Superb DuraVision UV 1.50'},
+  {c:'LE0642',d:'Zeiss Progressive Precision Superb DuraVision UV 1.60'},
+  {c:'LE0643',d:'Zeiss Progressive Superb Asiana 1.60'},
+  {c:'LE0644',d:'Zeiss Progressive Precision Superb DuraVision UV 1.67'},
+  {c:'LE0645',d:'Zeiss Progressive Superb Asiana 1.67'},
+  {c:'LE0646',d:'Zeiss Progressive Precision Superb DuraVision UV 1.74'},
+  {c:'LE0647',d:'Zeiss Progressive Plus Asiana 1.74'},
+  {c:'LE0648',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard UV 1.50'},
+  {c:'LE0649',d:'Zeiss Progressive Superb Asiana Transition/Photofusion 1.50'},
+  {c:'LE0650',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard UV 1.60'},
+  {c:'LE0651',d:'Zeiss Progressive  Superb Asiana Transition/Photofusion 1.60'},
+  {c:'LE0652',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard UV 1.67'},
+  {c:'LE0653',d:'Zeiss Progressive Superb Asiana Transition/Photofusion 1.67'},
+  {c:'LE0654',d:'Zeiss Progressive Plus 2 1.50'},
+  {c:'LE0655',d:'Zeiss Progressive Plus 2 1.60'},
+  {c:'LE0656',d:'Zeiss Progressive Plus 2 1.67'},
+  {c:'LE0657',d:'Zeiss Progressive Plus 2 1.74'},
+  {c:'LE0658',d:'Zeiss Progressive Plus 2 Transition/Photofusion 1.50'},
+  {c:'LE0659',d:'Zeiss Progressive Plus 2 Transition/Photofusion 1.60'},
+  {c:'LE0660',d:'Zeiss Progressive Plus 2 Transition/Photofusion 1.67'},
+  {c:'LE0661',d:'Zeiss Progressive Choice 1.50'},
+  {c:'LE0662',d:'Zeiss Progressive Choice 1.60'},
+  {c:'LE0663',d:'Zeiss Progressive Choice 1.67'},
+  {c:'LE0664',d:'Zeiss Progressive Choice Transition 1.50'},
+  {c:'LE0665',d:'Zeiss Progressive Choice Transition 1.60'},
+  {c:'LE0666',d:'Zeiss Progressive Choice Transition 1.67'},
+  {c:'LE0667',d:'Zeiss Progressive Individual Glass 1.60'},
+  {c:'LE0835',d:'Zeiss Digital Lens 1.67 Photofusion X with BlueGuard UV'},
+  {c:'LE1199',d:'Zeiss DriveSafe Single Vision 1.5 Clear'},
+  {c:'LE1200',d:'Zeiss DriveSafe Single Vision 1.6 Clear'},
+  {c:'LE1201',d:'Zeiss DriveSafe Single Vision 1.67 Clear'},
+  {c:'LE1202',d:'Zeiss DriveSafe Single Vision 1.74 Clear'},
+  {c:'LE1203',d:'Zeiss DriveSafe Single Vision 1.5 Photofusion (Grey/Brown)'},
+  {c:'LE1204',d:'Zeiss DriveSafe Single Vision 1.6 Photofusion (Grey/Brown)'},
+  {c:'LE1205',d:'Zeiss DriveSafe Single Vision 1.67 Photofusion (Grey/Brown)'},
+  {c:'LE1206',d:'Zeiss DriveSafe Progressive 1.5 Clear'},
+  {c:'LE1207',d:'Zeiss DriveSafe Progressive 1.6 Clear'},
+  {c:'LE1208',d:'Zeiss DriveSafe Progressive 1.67 Clear'},
+  {c:'LE1209',d:'Zeiss DriveSafe Progressive 1.74 Clear'},
+  {c:'LE1210',d:'Zeiss DriveSafe Progressive 1.5 Photofusion (Grey/Brown)'},
+  {c:'LE1211',d:'Zeiss DriveSafe Progressive 1.6 Photofusion (Grey/Brown)'},
+  {c:'LE1212',d:'Zeiss DriveSafe Progressive 1.67 Photofusion (Grey/Brown)'},
+  {c:'LE1223',d:'Zeiss Progressive Precision Plus/ Plus Asiana Photofusion X with BlueGurad UV 1.50'},
+  {c:'LE1224',d:'Zeiss Progressive Precision Plus/ Plus Asiana Photofusion X with BlueGurad UV 1.60'},
+  {c:'LE1225',d:'Zeiss Progressive Precision Plus/ Plus Asaina Photofusion X with BlueGurad UV 1.67'},
+  {c:'LE1226',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueProtect UV 1.50'},
+  {c:'LE1227',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueProtect UV 1.60'},
+  {c:'LE1228',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueProtect UV 1.67'},
+  {c:'LE1229',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueProtect UV 1.74'},
+  {c:'LE1233',d:'Zeiss Progressive Precision Pure DuraVision UV 1.50'},
+  {c:'LE1234',d:'Zeiss Progressive Precision Pure DuraVision UV 1.60'},
+  {c:'LE1235',d:'Zeiss Progressive Precision Pure DuraVision UV 1.67'},
+  {c:'LE1236',d:'Zeiss Progressive Precision Pure DuraVision UV 1.74'},
+  {c:'LE1237',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard UV 1.50'},
+  {c:'LE1238',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard UV 1.60'},
+  {c:'LE1239',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard UV 1.67'},
+  {c:'LE1245',d:'Zeiss BlueProtect SV Photofusion 1.6'},
+  {c:'LE1248',d:'Zeiss BlueProtect Office Superb 1.6'},
+  {c:'LE1343',d:'Zeiss SV 1.60 DuraVision Platinum UV (RX)'},
+  {c:'LE1349',d:'Zeiss SV 1.60 DuraVision PhotoFusion UV (Rx)'},
+  {c:'LE1351',d:'Zeiss SV 1.50 DuraVision PhotoFusion UV (Rx)'},
+  {c:'LE1352',d:'Zeiss SV 1.50 DuraVision Platinum UV (RX)'},
+  {c:'LE1365',d:'Zeiss Progressive Lens Light 3D 1.60 DuraVision Platinum'},
+  {c:'LE1385',d:'Zeiss SV Superb/Superb Asiana 1.67 DuraVision Platinum'},
+  {c:'LE1580',d:'Zeiss SV (RX) 1.60 DuraVision Sun Tint'},
+  {c:'LE1965',d:'Zeiss Myokids Standard 1.67 DuraVision Platinum'},
+  {c:'LE1966',d:'Zeiss Myokids Standard 1.50 DuraVision Platinum'},
+  {c:'LE1967',d:'Zeiss Myokids Standard 1.60 DuraVision Platinum'},
+  {c:'LE1968',d:'Zeiss Myokids Asaina 1.50 DuraVision Platinum'},
+  {c:'LE1969',d:'Zeiss Myokids Asaina 1.60 DuraVision Platinum'},
+  {c:'LE1970',d:'Zeiss Myokids Asaina 1.67 DuraVision Platinum'},
+  {c:'LE1971',d:'Carl Zeiss PhotoFusion/ Pair  (Add on)'},
+  {c:'LE1974',d:'Zeiss Myovision Pro Asiana 1.50 Duravision Platinum UV'},
+  {c:'LE1975',d:'Zeiss Myovision Pro Asiana 1.60 Duravision Platinum UV'},
+  {c:'LE1976',d:'Zeiss Myovision Pro Asiana 1.67 Duravision Platinum UV'},
+  {c:'LE1983',d:'Zeiss SV 1.67 DuraVision Platinum UV (RX)'},
+  {c:'LE2072',d:'Carl Zeiss ClearView 1.60 UVProtect with DuraVision Platinium UV'},
+  {c:'LE2073',d:'Carl Zeiss ClearView 1.67 UVProtect with DuraVision Platinium UV'},
+  {c:'LE2074',d:'Carl Zeiss ClearView 1.74 UVProtect FSV with DuraVision Platinium UV coating'},
+  {c:'LE2075',d:'Carl Zeiss ClearView 1.60 BlueGuard with DuraVision Platinium UV'},
+  {c:'LE2076',d:'Carl Zeiss ClearView 1.67 BlueGuard with DuraVision Platinium UV'},
+  {c:'LE2077',d:'Carl Zeiss ClearView 1.74 BlueGuard with DuraVision Platinium UV'},
+  {c:'LE2078',d:'Zeiss Photofusion 1.60 FSV with DuraVision Platinium UV coating'},
+  {c:'LE2117',d:'Zeiss Myovision Pro Standard 1.50 Duravision Platinum UV'},
+  {c:'LE2118',d:'Zeiss Myovision Pro Standard 1.60 Duravision Platinum UV'},
+  {c:'LE2119',d:'Zeiss Myovision Pro Standard 1.67 Duravision Platinum UV'},
+  {c:'LE2120',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard AntiVirus 1.50'},
+  {c:'LE2121',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard AntiVirus 1.60'},
+  {c:'LE2122',d:'Zeiss Progressive Individual 2 Photofusion BlueGuard AntiVirus 1.67'},
+  {c:'LE2123',d:'Zeiss Officelens Plus 1.74 Duravision BlueProtect'},
+  {c:'LE2124',d:'Zeiss Officelens Superb 1.74 Duravision BlueProtect'},
+  {c:'LE2125',d:'Zeiss Progressive Individual Glass 1.80'},
+  {c:'LE2126',d:'Zeiss Precision Superb Glass 1.60'},
+  {c:'LE2127',d:'Zeiss Precision Superb Glass 1.80'},
+  {c:'LE2128',d:'Zeiss Progressive GT2 Glass 1.60'},
+  {c:'LE2129',d:'Zeiss Progressive GT2 Glass 1.80'},
+  {c:'LE2139',d:'Zeiss Single Vision Individual 1.67 BlueGuard DuraVision AntiVirus Platinum UV'},
+  {c:'LE2140',d:'Zeiss Myokids Asaina 1.60 Photofusion DuraVision Platinum UV'},
+  {c:'LE2152',d:'Zeiss Digital Lens Duravision BlueProtect UV 1.50'},
+  {c:'LE2153',d:'Zeiss Digital Lens Duravision BlueProtect UV 1.60'},
+  {c:'LE2154',d:'Zeiss Digital Lens Duravision BlueProtect UV 1.67'},
+  {c:'LE2155',d:'Zeiss Digital Lens Duravision BlueProtect UV 1.74'},
+  {c:'LE2156',d:'Zeiss Digital Lens 1.50 Photofusion X with BlueGuard AntiVirus UV'},
+  {c:'LE2157',d:'Zeiss Digital Lens 1.60 Photofusion X with BlueGuard AntiVirus UV'},
+  {c:'LE2159',d:'Carl Zeiss ClearView 1.74 UVProtect with DuraVision Platinium UV'},
+  {c:'LE2160',d:'Carl Zeiss ClearView PhotoFusion X with BlueGuard 1.60 with DuraVision Platinium UV'},
+  {c:'LE2161',d:'Zeiss SV Superb/Superb Asiana 1.50 DuraVision Platinum'},
+  {c:'LE2162',d:'Zeiss SV Superb/Superb Asiana 1.60 DuraVision Platinum'},
+  {c:'LE2163',d:'Zeiss SV Superb/Superb Asiana 1.74 DuraVision Platinum'},
+  {c:'LE2164',d:'Zeiss SV Superb/Superb Asiana 1.74 DuraVision BlueProtect UV'},
+  {c:'LE2165',d:'Zeiss SV Superb/Superb Asiana 1.67 DuraVision BlueProtect UV'},
+  {c:'LE2166',d:'Zeiss SV Superb/Superb Asiana 1.60 DuraVision BlueProtect UV'},
+  {c:'LE2167',d:'Zeiss SV Superb/Superb Asiana 1.50 DuraVision BlueProtect UV'},
+  {c:'LE2168',d:'Zeiss SV Superb/Superb Asiana 1.50 DuraVision Antivirus UV'},
+  {c:'LE2169',d:'Zeiss SV Superb/Superb Asiana 1.60 DuraVision Antivirus UV'},
+  {c:'LE2170',d:'Zeiss SV Superb/Superb Asiana 1.67 DuraVision Antivirus UV'},
+  {c:'LE2171',d:'Zeiss SV Superb/Superb Asiana 1.74 DuraVision Antivirus UV'},
+  {c:'LE2172',d:'Zeiss SV Superb/Superb Asiana 1.50 BlueGuard Antivirus UV'},
+  {c:'LE2173',d:'Zeiss SV Superb/Superb Asiana 1.60 BlueGuard Antivirus UV'},
+  {c:'LE2174',d:'Zeiss SV Superb/Superb Asiana 1.67 BlueGuard Antivirus UV'},
+  {c:'LE2175',d:'Zeiss SV Superb/Superb Asiana 1.74 BlueGuard Antivirus UV'},
+  {c:'LE2176',d:'Zeiss SV Superb/Superb Asiana 1.50 PhotoFusion BlueGuard Duravision UV'},
+  {c:'LE2177',d:'Zeiss SV Superb/Superb Asiana 1.60 PhotoFusion BlueGuard Duravision UV'},
+  {c:'LE2178',d:'Zeiss SV Superb/Superb Asiana 1.67 PhotoFusion BlueGuard Duravision UV'},
+  {c:'LE2179',d:'Zeiss SV Individual DuraVision UV 1.74'},
+  {c:'LE2180',d:'Zeiss SV Individual BlueProtect UV 1.50'},
+  {c:'LE2181',d:'Zeiss SV Individual BlueProtect UV 1.60'},
+  {c:'LE2182',d:'Zeiss SV Individual BlueProtect UV 1.67'},
+  {c:'LE2183',d:'Zeiss SV Individual BlueProtect UV 1.74'},
+  {c:'LE2184',d:'Zeiss SV Individual AntiVirus UV 1.50'},
+  {c:'LE2185',d:'Zeiss SV Individual AntiVirus UV 1.60'},
+  {c:'LE2186',d:'Zeiss SV Individual AntiVirus UV 1.67'},
+  {c:'LE2187',d:'Zeiss SV Individual AntiVirus UV 1.74'},
+  {c:'LE2188',d:'Zeiss SV Individual BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2189',d:'Zeiss SV Individual BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2190',d:'Zeiss SV Individual BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2191',d:'Zeiss SV Individual BlueGuard AntiVirus UV 1.74'},
+  {c:'LE2192',d:'Zeiss SV Individual PhotoFusion BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2193',d:'Zeiss SV Individual PhotoFusion BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2194',d:'Zeiss SV Individual PhotoFusion BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2195',d:'Zeiss SV Individual PhotoFusion BlueGuard UV 1.50'},
+  {c:'LE2196',d:'Zeiss SV Individual PhotoFusion BlueGuard UV 1.60'},
+  {c:'LE2197',d:'Zeiss SV Individual PhotoFusion BlueGuard UV 1.67'},
+  {c:'LE2198',d:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.50 (RX)'},
+  {c:'LE2199',d:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.60 (RX)'},
+  {c:'LE2200',d:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.67 (RX)'},
+  {c:'LE2201',d:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.74 (RX)'},
+  {c:'LE2202',d:'Carl Zeiss ClearView DuraVision Platinium UV 1.50 (RX)'},
+  {c:'LE2203',d:'Carl Zeiss ClearView DuraVision Platinium UV 1.60 (RX)'},
+  {c:'LE2204',d:'Carl Zeiss ClearView DuraVision Platinium UV 1.67 (RX)'},
+  {c:'LE2205',d:'Carl Zeiss ClearView DuraVision Platinium UV 1.74 (RX)'},
+  {c:'LE2206',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard UV 1.50 (RX)'},
+  {c:'LE2207',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard UV 1.60 (RX)'},
+  {c:'LE2208',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard UV 1.67 (RX)'},
+  {c:'LE2209',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard AntiVirus UV 1.50 (RX)'},
+  {c:'LE2210',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard AntiVirus UV 1.60 (RX)'},
+  {c:'LE2211',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard AntiVirus UV 1.67 (RX)'},
+  {c:'LE2212',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2213',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2214',d:'Zeiss Progressive Precision Superb PhotoFusion X BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2215',d:'Zeiss Progressive Precision Superb BlueProtect UV 1.50'},
+  {c:'LE2216',d:'Zeiss Progressive Precision Superb BlueProtect UV 1.60'},
+  {c:'LE2217',d:'Zeiss Progressive Precision Superb BlueProtect UV 1.67'},
+  {c:'LE2218',d:'Zeiss Progressive Precision Superb BlueProtect UV 1.74'},
+  {c:'LE2219',d:'Zeiss Progressive Precision Superb BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2220',d:'Zeiss Progressive Precision Superb BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2221',d:'Zeiss Progressive Precision Superb BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2222',d:'Zeiss Progressive Precision Superb BlueGuard AntiVirus UV 1.74'},
+  {c:'LE2223',d:'Zeiss Progressive Precision Plus/ Plus Asaina Photofusion X with BlueGurad AntiVirus UV 1.50'},
+  {c:'LE2224',d:'Zeiss Progressive Precision Plus/ Plus Asaina Photofusion X with BlueGurad AntiVirus UV 1.60'},
+  {c:'LE2225',d:'Zeiss Progressive Precision Plus/ Plus Asaina Photofusion X with BlueGurad AntiVirus UV 1.67'},
+  {c:'LE2226',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueGurad AntiVirus UV 1.50'},
+  {c:'LE2227',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueGurad AntiVirus UV 1.60'},
+  {c:'LE2228',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueGurad AntiVirus UV 1.67'},
+  {c:'LE2229',d:'Zeiss Progressive Precision Plus/ Plus Asaina BlueGurad AntiVirus UV 1.74'},
+  {c:'LE2230',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2231',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2232',d:'Zeiss Progressive Precision Pure Photofusion X BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2233',d:'Zeiss Progressive Precision Pure BlueGuard AntiVirus UV 1.50'},
+  {c:'LE2234',d:'Zeiss Progressive Precision Pure BlueGuard AntiVirus UV 1.60'},
+  {c:'LE2235',d:'Zeiss Progressive Precision Pure BlueGuard AntiVirus UV 1.67'},
+  {c:'LE2236',d:'Zeiss Progressive Precision Pure BlueGuard AntiVirus UV 1.74'},
+  {c:'LE2237',d:'Zeiss Progressive Precision Pure BlueProtect UV 1.50'},
+  {c:'LE2238',d:'Zeiss Progressive Precision Pure BlueProtect UV 1.60'},
+  {c:'LE2239',d:'Zeiss Progressive Precision Pure BlueProtect UV 1.67'},
+  {c:'LE2240',d:'Zeiss Progressive Precision Pure BlueProtect UV 1.74'},
+  {c:'LE2241',d:'Zeiss Progressive Precision Pure AntiVirus UV 1.50'},
+  {c:'LE2242',d:'Zeiss Progressive Precision Pure AntiVirus UV 1.60'},
+  {c:'LE2243',d:'Zeiss Progressive Precision Pure AntiVirus UV 1.67'},
+  {c:'LE2244',d:'Zeiss Progressive Precision Pure AntiVirus UV 1.74'},
+  {c:'LE2245',d:'Zeiss Officelens Plus BlueProtect 1.74'},
+  {c:'LE2246',d:'Zeiss Officelens Plus BlueGuard AntiVirus 1.50'},
+  {c:'LE2247',d:'Zeiss Officelens Plus BlueGuard AntiVirus 1.60'},
+  {c:'LE2248',d:'Zeiss Officelens Plus BlueGuard AntiVirus 1.67'},
+  {c:'LE2249',d:'Zeiss Officelens Plus BlueGuard AntiVirus 1.74'},
+  {c:'LE2250',d:'Zeiss Officelens Plus PhotoFusion BlueGuard 1.50'},
+  {c:'LE2251',d:'Zeiss Officelens Plus PhotoFusion BlueGuard 1.60'},
+  {c:'LE2252',d:'Zeiss Officelens Plus PhotoFusion BlueGuard 1.67'},
+  {c:'LE2253',d:'Zeiss Officelens Plus PhotoFusion BlueGuard AntiVitrus 1.50'},
+  {c:'LE2254',d:'Zeiss Officelens Plus PhotoFusion BlueGuard AntiVitrus 1.60'},
+  {c:'LE2255',d:'Zeiss Officelens Plus PhotoFusion BlueGuard AntiVitrus 1.67'},
+  {c:'LE2257',d:'Zeiss Progressive Individual 2 Blueguard AntiVirus UV 1.60'},
+  {c:'LE2258',d:'Zeiss Progressive Individual 2 Blueguard AntiVirus UV 1.67'},
+  {c:'LE2259',d:'Zeiss Progressive Individual 2 Blueguard AntiVirus UV 1.5'},
+  {c:'LE2260',d:'Zeiss Progressive Individual 2 Blueguard AntiVirus UV 1.74'},
+  {c:'LE2261',d:'Zeiss Progressive Precision Plus/ Plus Asaina DuraVision UV 1.60'},
+  {c:'LE2262',d:'Zeiss Myovision Pro Asiana 1.60 Duravision BlueProtect UV'},
+  {c:'LE2485',d:'Zeiss Progressive Precision Plus/ Plus Asiana with BlueGurad AntiVirus UV 1.60'},
+  {c:'LE2488',d:'Carl Zeiss ClearView 1.74 RX PhotoFusion X BlueGuard  DV Platinium UV'},
+  {c:'LE2489',d:'Carl Zeiss ClearView PhotoFusion X with BlueGuard 1.67 with DuraVision Platinium UV'},
+  {c:'LE2491',d:'Carl Zeiss Myocare S with DVBP 1.59'},
+  {c:'LE2492',d:'Carl Zeiss Myocare with DVBP1.59'},
+  {c:'LE2493',d:'Carl Zeiss Myocare with DVBP 1.67'},
+  {c:'LE2494',d:'Carl Zeiss Myocare S with DVBP 1.67'},
+  {c:'LE2495',d:'Carl Zeiss Myocare S MyoJourney Plus with DVBP 1.59'},
+  {c:'LE2496',d:'Carl Zeiss Myocare MyoJourney Plus with DVBP 1.59'},
+  {c:'LE2497',d:'Carl Zeiss Myocare MyoJourney Plus with DVBP 1.67'},
+  {c:'LE2498',d:'Carl Zeiss Myocare S MyoJourney Plus with DVBP 1.67'},
+  {c:'LE2500',d:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.50 (RX)'},
+  {c:'LE2501',d:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.60 (RX)'},
+  {c:'LE2502',d:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.67 (RX)'},
+  {c:'LE2503',d:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.74 (RX)'},
+  {c:'LE2504',d:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.50'},
+  {c:'LE2505',d:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.60'},
+  {c:'LE2506',d:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.67'},
+  {c:'LE2507',d:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.74'},
+  {c:'LE2508',d:'Carl Zeiss SmartLife SV/ SV Asiana with AntiVirus DVP 1.50'},
+  {c:'LE2509',d:'Carl Zeiss SmartLife SV/ SV Asiana with AntiVirus DVP 1.60'},
+  {c:'LE2510',d:'Carl Zeiss SmartLife SV/ SV Asiana BlueGuard with AntiVirus DVP 1.67'},
+  {c:'LE2511',d:'Carl Zeiss SmartLife SV/ SV Asiana BlueGuard with AntiVirus DVP 1.74'},
+  {c:'LE2512',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with DVP 1.50'},
+  {c:'LE2513',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with DVP 1.60'},
+  {c:'LE2514',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with DVP 1.67'},
+  {c:'LE2515',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with DVP 1.74'},
+  {c:'LE2516',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with Antivirus DVP 1.50'},
+  {c:'LE2517',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with Antivirus DVP 1.60'},
+  {c:'LE2518',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with Antivirus DVP 1.67'},
+  {c:'LE2519',d:'Carl Zeiss SmartLife SV/ SV Asiana PFX BlueGuard with Antivirus DVP 1.74'},
+  {c:'LE2520',d:'Carl Zeiss SmartLife SV Individual with DVP 1.50'},
+  {c:'LE2521',d:'Carl Zeiss SmartLife SV Individual with DVP 1.60'},
+  {c:'LE2522',d:'Carl Zeiss SmartLife SV Individual with DVP 1.67'},
+  {c:'LE2523',d:'Carl Zeiss SmartLife SV Individual with DVP 1.74'},
+  {c:'LE2524',d:'Carl Zeiss SmartLife SV Individual with BlueGuard DVP 1.50'},
+  {c:'LE2525',d:'Carl Zeiss SmartLife SV Individual with BlueGuard DVP 1.60'},
+  {c:'LE2526',d:'Carl Zeiss SmartLife SV Individual with BlueGuard DVP 1.67'},
+  {c:'LE2527',d:'Carl Zeiss SmartLife SV Individual with BlueGuard DVP 1.74'},
+  {c:'LE2528',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with DVP 1.50'},
+  {c:'LE2529',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with DVP 1.60'},
+  {c:'LE2530',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with DVP 1.67'},
+  {c:'LE2531',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with DVP 1.74'},
+  {c:'LE2532',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with AntiVirus DVP 1.50'},
+  {c:'LE2533',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with AntiVirus DVP 1.60'},
+  {c:'LE2534',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with AntiVirus DVP 1.67'},
+  {c:'LE2535',d:'Carl Zeiss SmartLife SV Individual PFX BlueGuard with AntiVirus DVP 1.74'},
+  {c:'LE2536',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.50'},
+  {c:'LE2537',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.60'},
+  {c:'LE2538',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.67'},
+  {c:'LE2539',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.74'},
+  {c:'LE2540',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.50'},
+  {c:'LE2541',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.60'},
+  {c:'LE2542',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.67'},
+  {c:'LE2543',d:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.74'},
+  {c:'LE2544',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard DVP 1.50'},
+  {c:'LE2545',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard DVP 1.60'},
+  {c:'LE2546',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard DVP 1.67'},
+  {c:'LE2547',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard DVP 1.74'},
+  {c:'LE2548',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2549',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2550',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2551',d:'Carl Zeiss SmartLife Digital/ Digital Asiana PFX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2552',d:'Carl Zeiss SmartLife Digital Individual with DVBP 1.50'},
+  {c:'LE2553',d:'Carl Zeiss SmartLife Digital Individual with DVBP 1.60'},
+  {c:'LE2554',d:'Carl Zeiss SmartLife Digital Individual with DVBP 1.67'},
+  {c:'LE2555',d:'Carl Zeiss SmartLife Digital Individual with DVBP 1.74'},
+  {c:'LE2556',d:'Carl Zeiss SmartLife Digital Individual with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2557',d:'Carl Zeiss SmartLife Digital Individual with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2558',d:'Carl Zeiss SmartLife Digital Individual with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2559',d:'Carl Zeiss SmartLife Digital Individual with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2560',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard DVP 1.50'},
+  {c:'LE2561',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard DVP 1.60'},
+  {c:'LE2562',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard DVP 1.67'},
+  {c:'LE2563',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard DVP 1.74'},
+  {c:'LE2564',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2565',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2566',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2567',d:'Carl Zeiss SmartLife Digital Individual PHX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2568',d:'Carl Zeiss SmartLife Pure with DVBP 1.50'},
+  {c:'LE2569',d:'Carl Zeiss SmartLife Pure with DVBP 1.60'},
+  {c:'LE2570',d:'Carl Zeiss SmartLife Pure with DVBP 1.67'},
+  {c:'LE2571',d:'Carl Zeiss SmartLife Pure with DVBP 1.74'},
+  {c:'LE2572',d:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2573',d:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2574',d:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2575',d:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2576',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard DVP 1.50'},
+  {c:'LE2577',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard DVP 1.60'},
+  {c:'LE2578',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard DVP 1.67'},
+  {c:'LE2579',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard DVP 1.74'},
+  {c:'LE2580',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2581',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2582',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2583',d:'Carl Zeiss SmartLife Pure PFX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2584',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.50'},
+  {c:'LE2585',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.60'},
+  {c:'LE2586',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.67'},
+  {c:'LE2587',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.74'},
+  {c:'LE2588',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.50'},
+  {c:'LE2589',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.60'},
+  {c:'LE2590',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.67'},
+  {c:'LE2591',d:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.74'},
+  {c:'LE2592',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard DVP 1.50'},
+  {c:'LE2593',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard DVP 1.60'},
+  {c:'LE2594',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard DVP 1.67'},
+  {c:'LE2595',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard DVP 1.74'},
+  {c:'LE2596',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2597',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2598',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2599',d:'Carl Zeiss SmartLife Plus/ Plus Asiana PFX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2600',d:'Carl Zeiss SmartLife Superb with DVBP 1.50'},
+  {c:'LE2601',d:'Carl Zeiss SmartLife Superb with DVBP 1.60'},
+  {c:'LE2602',d:'Carl Zeiss SmartLife Superb with DVBP 1.67'},
+  {c:'LE2603',d:'Carl Zeiss SmartLife Superb with DVBP 1.74'},
+  {c:'LE2604',d:'Carl Zeiss SmartLife Superb with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2605',d:'Carl Zeiss SmartLife Superb with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2606',d:'Carl Zeiss SmartLife Superb with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2607',d:'Carl Zeiss SmartLife Superb with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2608',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard DVP 1.50'},
+  {c:'LE2609',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard DVP 1.60'},
+  {c:'LE2610',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard DVP 1.67'},
+  {c:'LE2611',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard DVP 1.74'},
+  {c:'LE2612',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2613',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2614',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2615',d:'Carl Zeiss SmartLife Superb PFX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2616',d:'Carl Zeiss SmartLife Pal Individual with DVBP 1.50'},
+  {c:'LE2617',d:'Carl Zeiss SmartLife Pal Individual with DVBP 1.60'},
+  {c:'LE2618',d:'Carl Zeiss SmartLife Pal Individual with DVBP 1.67'},
+  {c:'LE2619',d:'Carl Zeiss SmartLife Pal Individual with DVBP 1.74'},
+  {c:'LE2620',d:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2621',d:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2622',d:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2623',d:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2624',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard DVP 1.50'},
+  {c:'LE2625',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard DVP 1.60'},
+  {c:'LE2626',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard DVP 1.67'},
+  {c:'LE2627',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard DVP 1.74'},
+  {c:'LE2628',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard AntiVirus DVP 1.50'},
+  {c:'LE2629',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard AntiVirus DVP 1.60'},
+  {c:'LE2630',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard AntiVirus DVP 1.67'},
+  {c:'LE2631',d:'Carl Zeiss SmartLife Pal Individual PFX with BlueGuard AntiVirus DVP 1.74'},
+  {c:'LE2632',d:'Carl Zeiss SmartLife Officelens Plus with DVBP 1.50'},
+  {c:'LE2633',d:'Carl Zeiss SmartLife Officelens Plus with DVBP 1.60'},
+  {c:'LE2634',d:'Carl Zeiss SmartLife Officelens Plus with DVBP 1.67'},
+  {c:'LE2635',d:'Carl Zeiss SmartLife Officelens Plus with DVBP 1.74'},
+  {c:'LE2636',d:'Carl Zeiss SmartLife Officelens Plus BlueGuard with DVP 1.50'},
+  {c:'LE2637',d:'Carl Zeiss SmartLife Officelens Plus BlueGuard with DVP 1.60'},
+  {c:'LE2638',d:'Carl Zeiss SmartLife Officelens Plus BlueGuard with  DVP 1.67'},
+  {c:'LE2639',d:'Carl Zeiss SmartLife Officelens Plus BlueGuard with  DVP 1.74'},
+  {c:'LE2640',d:'Carl Zeiss SmartLife Officelens Plus PFX with BlueGuard DVP 1.50'},
+  {c:'LE2641',d:'Carl Zeiss SmartLife Officelens Plus PFX with BlueGuard DVP 1.60'},
+  {c:'LE2642',d:'Carl Zeiss SmartLife Officelens Plus PFX with BlueGuard DVP 1.67'},
+  {c:'LE2643',d:'Carl Zeiss SmartLife Officelens Plus PFX with BlueGuard DVP 1.74'},
+  {c:'LE2655',d:'Zeiss SV (RX) 1.50 DuraVision Sun Tint'},
+  {c:'LE2656',d:'Carl Zeiss ClearView DuraVision Antivirus Platinium UV 1.60 (RX)'},
+  {c:'LE2657',d:'Carl Zeiss ClearView PhotoFusion X BlueGuard AntiVirus UV 1.74 (RX)'},
+  {c:'LE2660',d:'Zeiss Myokids Asaina 1.67 PhotoFusion X with DVBP'},
+  {c:'LE2673',d:'Carl Zeiss SmartLife SV/ SV Asiana with BlueGuard 1.60'},
+  {c:'LE2674',d:'Zeiss Officelens Superb 1.60 BlueGuard'},
+  {c:'LE2675',d:'Zeiss Myokids Asaina 1.60 Photofusion X BlueGuard'},
+  {c:'LE2676',d:'Carl Zeiss SmartLife Pal Individual Outdoor (Solid/ Gradient) 1.67'},
+  {c:'LE2681',d:'MyoJourney 1.59'},
 ];
 
-/* ─── ZEISS ITEMS DATABASE ─── */
-const ZEISS_ITEMS = [
-  // ClearView series
-  {code:'LE2072', description:'Carl Zeiss ClearView 1.60 UVProtect with DuraVision Platinium UV'},
-  {code:'LE2073', description:'Carl Zeiss ClearView 1.67 UVProtect with DuraVision Platinium UV'},
-  {code:'LE2074', description:'Carl Zeiss ClearView 1.74 UVProtect FSV with DuraVision Platinium UV coating'},
-  {code:'LE2159', description:'Carl Zeiss ClearView 1.74 UVProtect with DuraVision Platinium UV'},
-  {code:'LE2075', description:'Carl Zeiss ClearView 1.60 BlueGuard with DuraVision Platinium UV'},
-  {code:'LE2076', description:'Carl Zeiss ClearView 1.67 BlueGuard with DuraVision Platinium UV'},
-  {code:'LE2077', description:'Carl Zeiss ClearView 1.74 BlueGuard with DuraVision Platinium UV'},
-  {code:'LE2202', description:'Carl Zeiss ClearView DuraVision Platinium UV 1.50 (RX)'},
-  {code:'LE2203', description:'Carl Zeiss ClearView DuraVision Platinium UV 1.60 (RX)'},
-  {code:'LE2204', description:'Carl Zeiss ClearView DuraVision Platinium UV 1.67 (RX)'},
-  {code:'LE2205', description:'Carl Zeiss ClearView DuraVision Platinium UV 1.74 (RX)'},
-  {code:'LE2198', description:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.50 (RX)'},
-  {code:'LE2199', description:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.60 (RX)'},
-  {code:'LE2200', description:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.67 (RX)'},
-  {code:'LE2201', description:'Carl Zeiss ClearView BlueGuard with DuraVision Platinium UV 1.74 (RX)'},
-  {code:'LE2500', description:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.50 (RX)'},
-  {code:'LE2501', description:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.60 (RX)'},
-  {code:'LE2502', description:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.67 (RX)'},
-  {code:'LE2503', description:'Carl Zeiss ClearView BlueGuard with DuraVision AntiVirus Platinium UV 1.74 (RX)'},
-  {code:'LE2656', description:'Carl Zeiss ClearView DuraVision Antivirus Platinium UV 1.60 (RX)'},
-  // DriveSafe SV
-  {code:'LE1199', description:'Zeiss DriveSafe Single Vision 1.5 Clear'},
-  {code:'LE1200', description:'Zeiss DriveSafe Single Vision 1.6 Clear'},
-  {code:'LE1201', description:'Zeiss DriveSafe Single Vision 1.67 Clear'},
-  {code:'LE1202', description:'Zeiss DriveSafe Single Vision 1.74 Clear'},
-  {code:'LE1203', description:'Zeiss DriveSafe Single Vision 1.5 Photofusion (Grey/Brown)'},
-  {code:'LE1204', description:'Zeiss DriveSafe Single Vision 1.6 Photofusion (Grey/Brown)'},
-  {code:'LE1205', description:'Zeiss DriveSafe Single Vision 1.67 Photofusion (Grey/Brown)'},
-  // DriveSafe Progressive
-  {code:'LE1206', description:'Zeiss DriveSafe Progressive 1.5 Clear'},
-  {code:'LE1207', description:'Zeiss DriveSafe Progressive 1.6 Clear'},
-  {code:'LE1208', description:'Zeiss DriveSafe Progressive 1.67 Clear'},
-  {code:'LE1209', description:'Zeiss DriveSafe Progressive 1.74 Clear'},
-  {code:'LE1210', description:'Zeiss DriveSafe Progressive 1.5 Photofusion (Grey/Brown)'},
-  {code:'LE1211', description:'Zeiss DriveSafe Progressive 1.6 Photofusion (Grey/Brown)'},
-  {code:'LE1212', description:'Zeiss DriveSafe Progressive 1.67 Photofusion (Grey/Brown)'},
-  // SmartLife Digital
-  {code:'LE2536', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.50'},
-  {code:'LE2537', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.60'},
-  {code:'LE2538', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.67'},
-  {code:'LE2539', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with DVBP 1.74'},
-  {code:'LE2540', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.50'},
-  {code:'LE2541', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.60'},
-  {code:'LE2542', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.67'},
-  {code:'LE2543', description:'Carl Zeiss SmartLife Digital/ Digital Asiana with BlueGuard Antivirus DVP 1.74'},
-  // SmartLife SV
-  {code:'LE2504', description:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.50'},
-  {code:'LE2505', description:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.60'},
-  {code:'LE2506', description:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.67'},
-  {code:'LE2507', description:'Carl Zeiss SmartLife SV/ SV Asiana with DVBP 1.74'},
-  {code:'LE2508', description:'Carl Zeiss SmartLife SV/ SV Asiana with AntiVirus DVP 1.50'},
-  {code:'LE2509', description:'Carl Zeiss SmartLife SV/ SV Asiana with AntiVirus DVP 1.60'},
-  {code:'LE2510', description:'Carl Zeiss SmartLife SV/ SV Asiana BlueGuard with AntiVirus DVP 1.67'},
-  {code:'LE2511', description:'Carl Zeiss SmartLife SV/ SV Asiana BlueGuard with AntiVirus DVP 1.74'},
-  // SmartLife Pure (Progressive)
-  {code:'LE2568', description:'Carl Zeiss SmartLife Pure with DVBP 1.50'},
-  {code:'LE2569', description:'Carl Zeiss SmartLife Pure with DVBP 1.60'},
-  {code:'LE2570', description:'Carl Zeiss SmartLife Pure with DVBP 1.67'},
-  {code:'LE2571', description:'Carl Zeiss SmartLife Pure with DVBP 1.74'},
-  {code:'LE2572', description:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.50'},
-  {code:'LE2573', description:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.60'},
-  {code:'LE2574', description:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.67'},
-  {code:'LE2575', description:'Carl Zeiss SmartLife Pure with BlueGuard AntiVirus DVP 1.74'},
-  // SmartLife Plus/Plus Asiana (Progressive)
-  {code:'LE2584', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.50'},
-  {code:'LE2585', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.60'},
-  {code:'LE2586', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.67'},
-  {code:'LE2587', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with DVBP 1.74'},
-  {code:'LE2588', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.50'},
-  {code:'LE2589', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.60'},
-  {code:'LE2590', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.67'},
-  {code:'LE2591', description:'Carl Zeiss SmartLife Plus/ Plus Asiana with BlueGuard Antivirus DVP 1.74'},
-  // SmartLife Pal Individual (Progressive Individual)
-  {code:'LE2616', description:'Carl Zeiss SmartLife Pal Individual with DVBP 1.50'},
-  {code:'LE2617', description:'Carl Zeiss SmartLife Pal Individual with DVBP 1.60'},
-  {code:'LE2618', description:'Carl Zeiss SmartLife Pal Individual with DVBP 1.67'},
-  {code:'LE2619', description:'Carl Zeiss SmartLife Pal Individual with DVBP 1.74'},
-  {code:'LE2620', description:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.50'},
-  {code:'LE2621', description:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.60'},
-  {code:'LE2622', description:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.67'},
-  {code:'LE2623', description:'Carl Zeiss SmartLife Pal Individual with BlueGuard AntiVirus DVP 1.74'},
-  // Myocare
-  {code:'LE2491', description:'Carl Zeiss Myocare S with DVBP 1.59'},
-  {code:'LE2492', description:'Carl Zeiss Myocare with DVBP 1.59'},
-  {code:'LE2493', description:'Carl Zeiss Myocare with DVBP 1.67'},
-  {code:'LE2494', description:'Carl Zeiss Myocare S with DVBP 1.67'},
-];
-
-/* ─── ZEISS HEADER MAP ─── */
-const ZEISS_HEADER_MAP = [
-  // ClearView Finished SV with UVProtect
-  {p:/finished.*sv.*clearview.*1\.74.*uvprotect/i, c:'LE2074'},
-  {p:/finished.*sv.*clearview.*1\.67.*uvprotect/i, c:'LE2073'},
-  {p:/finished.*sv.*clearview.*1\.6[^7].*uvprotect/i, c:'LE2072'},
-  {p:/finished.*sv.*clearview.*uvprotect.*1\.74/i, c:'LE2074'},
-  {p:/finished.*sv.*clearview.*uvprotect.*1\.67/i, c:'LE2073'},
-  {p:/finished.*sv.*clearview.*uvprotect/i, c:'LE2072'},
-  // ClearView RX with DuraVision Platinum (no UVProtect, no BlueGuard)
-  {p:/clearview.*1\.74.*duravision(?!.*antivirus)(?!.*blueguard)/i, c:'LE2205'},
-  {p:/clearview.*1\.67.*duravision(?!.*antivirus)(?!.*blueguard)/i, c:'LE2204'},
-  {p:/clearview.*1\.6[^7].*duravision(?!.*antivirus)(?!.*blueguard)/i, c:'LE2203'},
-  {p:/clearview.*1\.50.*duravision(?!.*antivirus)(?!.*blueguard)/i, c:'LE2202'},
-  // ClearView with BlueGuard AntiVirus
-  {p:/clearview.*blueguard.*antivirus.*1\.74/i, c:'LE2503'},
-  {p:/clearview.*blueguard.*antivirus.*1\.67/i, c:'LE2502'},
-  {p:/clearview.*blueguard.*antivirus.*1\.6[^7]/i, c:'LE2501'},
-  {p:/clearview.*blueguard.*antivirus.*1\.50/i, c:'LE2500'},
-  // ClearView with BlueGuard (no antivirus)
-  {p:/clearview.*blueguard.*1\.74/i, c:'LE2201'},
-  {p:/clearview.*blueguard.*1\.67/i, c:'LE2200'},
-  {p:/clearview.*blueguard.*1\.6[^7]/i, c:'LE2199'},
-  {p:/clearview.*blueguard.*1\.50/i, c:'LE2198'},
-  // DriveSafe SV with PhotoFusion
-  {p:/drivesafe.*single.*vision.*1\.67.*photo/i, c:'LE1205'},
-  {p:/drivesafe.*single.*vision.*1\.6[^7].*photo/i, c:'LE1204'},
-  {p:/drivesafe.*single.*vision.*1\.5.*photo/i, c:'LE1203'},
-  // DriveSafe SV clear
-  {p:/drivesafe.*single.*vision.*1\.74/i, c:'LE1202'},
-  {p:/drivesafe.*single.*vision.*1\.67/i, c:'LE1201'},
-  {p:/drivesafe.*single.*vision.*1\.6[^7]/i, c:'LE1200'},
-  {p:/drivesafe.*single.*vision.*1\.5/i, c:'LE1199'},
-  // SmartLife Digital with BlueGuard AntiVirus
-  {p:/smartlife.*digital.*blueguard.*antivirus.*1\.74/i, c:'LE2543'},
-  {p:/smartlife.*digital.*blueguard.*antivirus.*1\.67/i, c:'LE2542'},
-  {p:/smartlife.*digital.*blueguard.*antivirus.*1\.6[^7]/i, c:'LE2541'},
-  {p:/smartlife.*digital.*blueguard.*antivirus.*1\.50/i, c:'LE2540'},
-  {p:/digital.*smartlife.*blueguard.*antivirus.*1\.67/i, c:'LE2542'},
-  {p:/digital.*smartlife.*blueguard.*antivirus.*1\.6[^7]/i, c:'LE2541'},
-  // SmartLife Digital DVBP
-  {p:/smartlife.*digital.*1\.74/i, c:'LE2539'},
-  {p:/smartlife.*digital.*1\.67/i, c:'LE2538'},
-  {p:/smartlife.*digital.*1\.6[^7]/i, c:'LE2537'},
-  {p:/smartlife.*digital.*1\.50/i, c:'LE2536'},
-  // SmartLife Progressive Individual (Pal Individual) with BlueGuard
-  {p:/smartlife.*individual.*blueguard.*antivirus.*1\.74/i, c:'LE2623'},
-  {p:/smartlife.*individual.*blueguard.*antivirus.*1\.67/i, c:'LE2622'},
-  {p:/smartlife.*individual.*blueguard.*antivirus.*1\.6[^7]/i, c:'LE2621'},
-  {p:/smartlife.*individual.*blueguard.*antivirus.*1\.50/i, c:'LE2620'},
-  // SmartLife Progressive Individual DVBP
-  {p:/smartlife.*individual.*1\.74/i, c:'LE2619'},
-  {p:/smartlife.*individual.*1\.67/i, c:'LE2618'},
-  {p:/smartlife.*individual.*1\.6[^7]/i, c:'LE2617'},
-  {p:/smartlife.*individual.*1\.50/i, c:'LE2616'},
-  // SmartLife SV BlueGuard AntiVirus
-  {p:/smartlife.*sv.*blueguard.*antivirus.*1\.74/i, c:'LE2511'},
-  {p:/smartlife.*sv.*blueguard.*antivirus.*1\.67/i, c:'LE2510'},
-  {p:/smartlife.*sv.*blueguard.*antivirus.*1\.6[^7]/i, c:'LE2509'},
-  {p:/smartlife.*sv.*blueguard.*antivirus.*1\.50/i, c:'LE2508'},
-  // SmartLife SV DVBP
-  {p:/smartlife.*sv.*1\.74/i, c:'LE2507'},
-  {p:/smartlife.*sv.*1\.67/i, c:'LE2506'},
-  {p:/smartlife.*sv.*1\.6[^7]/i, c:'LE2505'},
-  {p:/smartlife.*sv.*1\.50/i, c:'LE2504'},
-  // Myocare
-  {p:/myocare.*s.*1\.67/i, c:'LE2494'},
-  {p:/myocare.*s.*1\.59/i, c:'LE2491'},
-  {p:/myocare.*1\.67/i, c:'LE2493'},
-  {p:/myocare.*1\.59/i, c:'LE2492'},
-];
-
-/* ─── ESSILOR MATCHING ─── */
-function essilorMatch(header) {
-  if (!header) return null;
-  const hl = header.toLowerCase();
-  for (const m of ESSILOR_HEADER_MAP) {
-    if (m.p.test(hl)) {
-      const item = ESSILOR_ITEMS.find(i => i.code === m.c);
-      if (item) return {...item, score: 14};
-    }
-  }
-  return null;
-}
-
-/* ─── ZEISS MATCHING ─── */
-function zeissMatch(header) {
-  if (!header) return null;
-  const hl = header.toLowerCase();
-  // Critical: extract index first to prevent cross-index matching
-  const idxM = hl.match(/1\.(5[0-9]?|6[0-9]?|7[0-9]?|8[0-9]?|9[0-9]?)/);
-  const idx = idxM ? parseFloat(idxM[0]).toFixed(2) : null;
+/* ─── CLAUDE LENS MATCHING (Option B) ─── */
+// Single API call: send description + full supplier DB, Claude returns top 3 matches
+async function matchLensWithClaude(description, supplier) {
+  if (!description || description.trim() === '') return [];
   
-  for (const m of ZEISS_HEADER_MAP) {
-    if (m.p.test(hl)) {
-      const item = ZEISS_ITEMS.find(i => i.code === m.c);
-      if (item) {
-        // Verify index matches
-        const itemIdxM = item.description.match(/1\.(5[0-9]?|6[0-9]?|7[0-9]?|8[0-9]?)/);
-        const itemIdx = itemIdxM ? parseFloat(itemIdxM[0]).toFixed(2) : null;
-        if (idx && itemIdx && idx !== itemIdx) continue; // wrong index, try next
-        return {...item, score: 14};
-      }
-    }
-  }
-  return null;
-}
+  const db = supplier === 'ESSILOR' ? ESSILOR_DB : ZEISS_DB;
+  const supplierName = supplier === 'ESSILOR' ? 'Essilor' : 'Carl Zeiss';
+  
+  // Format item list compactly
+  const itemList = db.map(item => `${item.c}: ${item.d}`).join('\n');
+  
+  const prompt = `You are matching an optical lens invoice description to a Frontwave inventory item code.
 
+Invoice description: "${description}"
+Supplier: ${supplierName}
+
+Frontwave item list (item_code: description):
+${itemList}
+
+Find the TOP 3 best matching items. Consider: lens type, index (1.50/1.56/1.60/1.67/1.74), coating (BlueGuard/DuraVision/UVProtect/Crizal), and variant (Individual/Superb/Plus/Digital/SV).
+
+Return ONLY this JSON, no other text:
+{"matches":[{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"},{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"},{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"}]}`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': getApiKey(),
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 400,
+      messages: [{role: 'user', content: prompt}]
+    })
+  });
+  
+  if (!resp.ok) return [];
+  const data = await resp.json();
+  const raw = data.content[0].text;
+  const m = raw.match(/{[\s\S]*}/);
+  if (!m) return [];
+  const parsed = JSON.parse(m[0]);
+  return parsed.matches || [];
+}
 
 
 function normaliseHeader(h){
@@ -921,6 +1488,34 @@ async function processAll(){
   }
 
   invoiceGroups=buildGroups(pageResults);
+
+  // Step 3: Claude lens matching for Essilor and Zeiss (Option B)
+  const esZeissGroups = invoiceGroups.filter(inv =>
+    (inv.supplier==='ESSILOR'||inv.supplier==='ZEISS') && !inv.isZeroValue && !inv.isCreditNote && inv.fwLines
+  );
+  if(esZeissGroups.length > 0){
+    let matched = 0;
+    for(const inv of esZeissGroups){
+      for(const line of inv.fwLines){
+        matched++;
+        setProgress(matched, esZeissGroups.reduce((s,g)=>s+(g.fwLines?.length||0),0),
+          `Matching lens: ${line.header.substring(0,40)}...`,
+          'Step 3/3: Matching lens codes');
+        try{
+          const candidates = await matchLensWithClaude(line.header, inv.supplier);
+          line.candidates = candidates;
+          // Set primary match from top candidate
+          if(candidates.length > 0){
+            const top = candidates[0];
+            line.match = {code: top.code, description: top.description, score: top.confidence==='high'?16:top.confidence==='medium'?12:8};
+          }
+        }catch(e){
+          line.candidates = [];
+        }
+      }
+    }
+  }
+
   currentIdx=0;
   document.getElementById('progressWrap').style.display='none';
   document.getElementById('invoiceViewer').style.display='block';
@@ -934,18 +1529,75 @@ function setProgress(done,total,detail,label){
   document.getElementById('progDetail').textContent=detail;
 }
 function buildPrompt() {
-  return `Read this optical lens invoice. Return ONLY JSON, no other text.
+  return `Read this optical lens invoice image carefully. Return ONLY a JSON object, no other text.
 
-Identify supplier from letterhead: HOYA LENS=HOYA, ESSILOR SINGAPORE=ESSILOR, Carl Zeiss=ZEISS, else=UNKNOWN.
+IDENTIFY SUPPLIER: Look at the top-left letterhead.
+- "HOYA LENS (S) PTE LTD" with HOYA logo -> HOYA
+- "ESSILOR SINGAPORE" with Essilor logo -> ESSILOR  
+- "Carl Zeiss Vision Singapore" with ZEISS logo -> ZEISS
+- Otherwise -> UNKNOWN
 
-HOYA: invoice_no after "INVOICE NO.:", invoice_date after "DATE :", job_ref is bottom-left line 2 (has letters), grand_total is "TOTAL AMOUNT", no1_header is NO=1 description, r_amount and l_amount are AMOUNT column values on R/L lines after discount, shared_costs are other charged lines, lens_lines=[].
+=== HOYA INVOICE ===
+The top-right block has exactly these labels with values beside them:
+DATE          :  [invoice_date is THIS value, e.g. 06/05/2026]
+INVOICE NO.   :  [invoice_no is THIS value, starts with IH26 or CH26, e.g. IH26025058]
+TRANS         :  SALES
+OPERATOR      :  [name]
+PAGE          :  1 of 1
 
-ESSILOR: invoice_no in "INVOICE NO." box (not large centre number), invoice_date in "DATE" box, job_ref after "Cust Ref:" (not Track No), grand_total is "TOTAL SGD", lens_lines has 1-2 base lens rows from DESCRIPTION column (exclude Edging, Fitting, Top-up, Polish, Replacement), r_amount=l_amount=null.
+Bottom-left has TWO text lines:
+Line 1: numbers only (e.g. 0705 585050 40655183) - IGNORE THIS
+Line 2: has letters (e.g. 0407 S009 EC PPL) - this is job_ref
 
-ZEISS: invoice_no after "Invoice No:" label (never SSO number), invoice_date after "Invoice Date:", job_ref after "Ref No.:", grand_total is "Total:", lens_lines has 2 entries (R and L combined descriptions, base lens amount only, exclude edging/polishing/coating lines), r_amount=l_amount=null.
+The invoice table has columns: NO | DESCRIPTION | QTY (PCS) | UNIT PRICE | DISC% | AMOUNT (S$)
+Row with NO=1: The DESCRIPTION on this row is the lens name. Examples:
+  "STK - NULUX 160 HVLL UVC HVLL-UV PD 63"
+  "SYNC 3 PRO 160 MEIRYO SEN 2 GY (57) MEIRYO - 16 PD56 HT22"
+  "MYSELF PROFILE 153 MEIRYO STABLE MEIRYO - XX 35.5/35 HT19"
+THIS full text on the NO=1 row is no1_header.
+no2_header is ALWAYS null - Hoya invoices only have one NO column.
 
-Return: {"supplier":"","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
+Subsequent sub-rows under NO=1 show R and L prescriptions:
+"R S+..." row: AMOUNT column value = r_amount (e.g. 15.00, this is AFTER discount)
+"L S+..." row: AMOUNT column value = l_amount (e.g. 15.00, this is AFTER discount)
+Other rows like METS, FULL CONTROL, edging, mounting = shared_costs (not lenses)
+
+grand_total = "TOTAL AMOUNT" value at bottom right (after GST)
+
+=== ESSILOR INVOICE ===
+Top-right has a row of boxes: ZONE | DATE | PAGE | INVOICE NO.
+invoice_date = value inside the DATE box (e.g. 06/05/2026)
+invoice_no = value inside the INVOICE NO. box (e.g. 102002520963) - this is a 12-digit number. NOT the large centred batch number like 993555.
+
+Bottom-left area has labelled lines:
+"Cust Ref: D06-126000383" -> job_ref = "D06-126000383"
+Ignore "Track No:" and "Order Source:"
+
+grand_total = "TOTAL SGD" value (e.g. 211.46)
+
+Table has ITEM NO. and DESCRIPTION columns.
+lens_lines = the rows where DESCRIPTION says the actual lens product name.
+For each lens row, return {"description": "...", "amount": number}
+Base lens rows: "Stellest 1.0 Lens (Standard Order)", "Stellest 2.0 Lens (Standard Order)", "Eyezen 1.60 Blue UV Capture", etc.
+There will be 1 or 2 base lens rows. Return ALL of them.
+EXCLUDE these rows from lens_lines: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal...(Top-up), Crizal Rock (Built-In), Express, Replacement, REPL_100, Ext Hi Index
+
+=== ZEISS INVOICE ===
+invoice_no = value after "Invoice No:" label (e.g. S001405208). NEVER use the SSO number.
+invoice_date = value after "Invoice Date:" label (e.g. 04-May-26)
+job_ref = value after "Ref No.:" label (e.g. 0366)
+grand_total = "Total:" value at bottom (e.g. 192.93)
+
+Table has R and L blocks. For each block, the first row has the lens description (may span 2 lines), then coating/edging rows below it.
+Combine the lens description lines per block into one string.
+Return lens_lines with exactly 2 entries (R and L).
+Only include the base lens amount, not coatings or edging.
+EXCLUDE from lens_lines: EDGING FOR SV, EDGING FOR PAL, EDGING :RMLON-PAL PLASTIC, POLISHING - PLASTIC, DuraVision (when separate line), X Brown, DuraVision DriveSafe UV, DuraVision AntiVirus Platinum UV, DURAVISION PLATINUM UV
+
+Return this JSON (use null for any field you cannot clearly read):
+{"supplier":"","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
 }
+
 
 function extractPage(base64, mimeType) {
   return new Promise((resolve, reject) => {
@@ -1183,6 +1835,24 @@ function renderInvoice(){
             <span class="lf-label">Description</span>
             <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">Copy</button>`:''}</span>
           </div>
+          ${(inv.supplier==='ESSILOR'||inv.supplier==='ZEISS')&&line.candidates&&line.candidates.length>0?`
+          <div class="lf-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+            <span class="lf-label" style="margin-bottom:2px">Top Matches (tap to select)</span>
+            ${line.candidates.map((c,ci)=>`
+              <div onclick="selectCandidate(${currentIdx},${i},${ci})"
+                style="cursor:pointer;padding:8px 10px;border-radius:6px;width:100%;box-sizing:border-box;
+                background:${m&&m.code===c.code?'var(--accent)':'var(--surface2)'};
+                border:1.5px solid ${m&&m.code===c.code?'var(--accent)':'var(--border)'};
+                color:${m&&m.code===c.code?'white':'var(--ink1)'};
+                font-size:12px;line-height:1.4">
+                <span style="font-weight:700;font-family:var(--mono)">${c.code}</span>
+                <span style="margin-left:6px;opacity:0.8;font-size:10px;padding:1px 5px;border-radius:3px;
+                background:${c.confidence==='high'?'#22c55e':c.confidence==='medium'?'#f59e0b':'#94a3b8'};color:white">
+                  ${c.confidence}</span><br>
+                <span style="margin-top:2px;display:block">${c.description}</span>
+                ${c.reason?`<span style="font-size:10px;opacity:0.6;margin-top:1px;display:block">${c.reason}</span>`:''}
+              </div>`).join('')}
+          </div>`:''}
           <div class="lf-row">
             <span class="lf-label">Invoice</span>
             <span class="lf-val invoice-ref">${line.header||'—'}</span>
@@ -1247,6 +1917,17 @@ function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();
 function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block';}
 function hideError(){document.getElementById('errorBox').style.display='none';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function selectCandidate(groupIdx, lineIdx, candidateIdx){
+  const inv = invoiceGroups[groupIdx];
+  if(!inv||!inv.fwLines) return;
+  const line = inv.fwLines[lineIdx];
+  if(!line||!line.candidates) return;
+  const c = line.candidates[candidateIdx];
+  if(!c) return;
+  line.match = {code: c.code, description: c.description, score: c.confidence==='high'?16:c.confidence==='medium'?12:8};
+  renderInvoice();
+}
+
 function resetAll(){uploadedFiles=[];invoiceGroups=[];currentIdx=0;document.getElementById('uploadZone').style.display='block';document.getElementById('fileQueue').style.display='none';document.getElementById('progressWrap').style.display='none';document.getElementById('invoiceViewer').style.display='none';document.getElementById('fileInput').value='';hideError();}
 
 initApp();
