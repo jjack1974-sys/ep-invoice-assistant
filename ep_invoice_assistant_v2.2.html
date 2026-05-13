@@ -865,14 +865,19 @@ async function pdfToImages(file){
   const imgs=[];
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
-    // Scale 1.0 — sufficient for Claude to read text, keeps payload small
-    const vp=page.getViewport({scale:1.0});
+    const vp=page.getViewport({scale:1.2});
+    const fullH=Math.round(vp.height);
+    const fullW=Math.round(vp.width);
+    // Render full page first
+    const fullCanvas=document.createElement('canvas');
+    fullCanvas.width=fullW; fullCanvas.height=fullH;
+    await page.render({canvasContext:fullCanvas.getContext('2d'),viewport:vp}).promise;
+    // Crop to top 65% — removes payment details footer on Zeiss, irrelevant whitespace elsewhere
+    const cropH=Math.round(fullH*0.65);
     const canvas=document.createElement('canvas');
-    canvas.width=Math.round(vp.width);
-    canvas.height=Math.round(vp.height);
-    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
-    // Quality 0.75 — further reduces payload
-    imgs.push({base64:canvas.toDataURL('image/jpeg',0.75).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
+    canvas.width=fullW; canvas.height=cropH;
+    canvas.getContext('2d').drawImage(fullCanvas,0,0,fullW,cropH,0,0,fullW,cropH);
+    imgs.push({base64:canvas.toDataURL('image/jpeg',0.82).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
   }
   return imgs;
 }
@@ -929,51 +934,17 @@ function setProgress(done,total,detail,label){
   document.getElementById('progDetail').textContent=detail;
 }
 function buildPrompt() {
-  return `You are reading an optical lens supplier invoice for Eyecare People, Singapore.
-Return ONLY valid JSON. No other text before or after the JSON.
+  return `Read this optical lens invoice. Return ONLY JSON, no other text.
 
-STEP 1 - IDENTIFY SUPPLIER from the letterhead (top-left corner):
-- Large HOYA logo + "HOYA LENS (S) PTE LTD" -> supplier = "HOYA"
-- "ESSILOR SINGAPORE" and "ESSILORLUXOTTICA" -> supplier = "ESSILOR"
-- "Carl Zeiss Vision Singapore Pte Ltd" or ZEISS logo -> supplier = "ZEISS"
-- Otherwise -> supplier = "UNKNOWN"
+Identify supplier from letterhead: HOYA LENS=HOYA, ESSILOR SINGAPORE=ESSILOR, Carl Zeiss=ZEISS, else=UNKNOWN.
 
-STEP 2 - EXTRACT. Rules: if unsure return null. Never guess. No data from other pages.
+HOYA: invoice_no after "INVOICE NO.:", invoice_date after "DATE :", job_ref is bottom-left line 2 (has letters), grand_total is "TOTAL AMOUNT", no1_header is NO=1 description, r_amount and l_amount are AMOUNT column values on R/L lines after discount, shared_costs are other charged lines, lens_lines=[].
 
-FOR HOYA:
-- invoice_no: after "INVOICE NO.:" label
-- invoice_date: after "DATE :" label
-- doc_type: "CREDIT NOTE" if CH prefix else "TAX INVOICE"
-- job_ref: bottom-left line 2 (has letters, e.g. "0407 S009 EC PPL"). NOT the numeric-only line 1.
-- grand_total: "TOTAL AMOUNT" (after GST)
-- no1_header: description on NO=1 row
-- no2_header: null
-- r_amount: AMOUNT on "R " line (after discount)
-- l_amount: AMOUNT on "L " line (after discount)
-- shared_costs: other charged lines with amount > 0
-- lens_lines: []
+ESSILOR: invoice_no in "INVOICE NO." box (not large centre number), invoice_date in "DATE" box, job_ref after "Cust Ref:" (not Track No), grand_total is "TOTAL SGD", lens_lines has 1-2 base lens rows from DESCRIPTION column (exclude Edging, Fitting, Top-up, Polish, Replacement), r_amount=l_amount=null.
 
-FOR ESSILOR:
-- invoice_no: value in "INVOICE NO." box top-right. NOT the large centred batch number.
-- invoice_date: value in "DATE" box top-right
-- doc_type: as printed
-- job_ref: value after "Cust Ref:" label. NOT Track No or Order Source.
-- grand_total: "TOTAL SGD"
-- no1_header/no2_header/r_amount/l_amount: null
-- shared_costs: []
-- lens_lines: base lens rows from DESCRIPTION column only (1 or 2 entries). Exclude: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal Top-up, Crizal Rock Built-In, Express, Replacement.
+ZEISS: invoice_no after "Invoice No:" label (never SSO number), invoice_date after "Invoice Date:", job_ref after "Ref No.:", grand_total is "Total:", lens_lines has 2 entries (R and L combined descriptions, base lens amount only, exclude edging/polishing/coating lines), r_amount=l_amount=null.
 
-FOR ZEISS:
-- invoice_no: value after "Invoice No:" label ONLY. NEVER the SSO number.
-- invoice_date: value after "Invoice Date:"
-- job_ref: value after "Ref No.:" label
-- grand_total: "Total:" (after GST)
-- no1_header/no2_header/r_amount/l_amount: null
-- shared_costs: []
-- lens_lines: exactly 2 entries (R and L). Combine description lines per block. Use base lens amount only. Exclude edging, polishing, DuraVision coating lines.
-
-Return JSON:
-{"supplier":"HOYA|ESSILOR|ZEISS|UNKNOWN","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
+Return: {"supplier":"","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
 }
 
 function extractPage(base64, mimeType) {
@@ -985,35 +956,21 @@ function extractPage(base64, mimeType) {
     xhr.setRequestHeader('anthropic-version', '2023-06-01');
     xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
     xhr.timeout = 30000;
-
     xhr.ontimeout = () => reject(new Error('Timed out after 30s'));
     xhr.onerror   = () => reject(new Error('Network error'));
-
     xhr.onload = () => {
-      if (xhr.status === 429) {
-        // Rate limited — wait 10s then retry once
-        setTimeout(() => {
-          extractPage(base64, mimeType).then(resolve).catch(reject);
-        }, 10000);
-        return;
-      }
-      if (xhr.status !== 200) {
-        reject(new Error('API ' + xhr.status));
-        return;
-      }
+      if (xhr.status === 429) { reject(new Error('Rate limited')); return; }
+      if (xhr.status !== 200) { reject(new Error('API ' + xhr.status)); return; }
       try {
         const data = JSON.parse(xhr.responseText);
         const raw = data.content[0].text;
         const m = raw.match(/{[\s\S]*}/);
         resolve(JSON.parse(m ? m[0] : raw));
-      } catch(e) {
-        reject(new Error('Parse error: ' + e.message));
-      }
+      } catch(e) { reject(new Error('Parse: ' + e.message)); }
     };
-
     xhr.send(JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
+      max_tokens: 800,
       messages: [{role:'user', content:[
         {type:'image', source:{type:'base64', media_type:mimeType, data:base64}},
         {type:'text', text:buildPrompt()}
@@ -1021,12 +978,6 @@ function extractPage(base64, mimeType) {
     }));
   });
 }
-
-
-
-
-
-
 
 
 function buildGroups(pages){
