@@ -1055,7 +1055,7 @@ function buildGroups(pages){
       if(same){
         const qty=lines.length>=2?2:1;
         const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/qty)*100)/100:null;
-        inv.fwLines=[{header:lines[0]?.description||'',unitPrice,qty,match:(inv.supplier==='ESSILOR'?essilorMatch(l.description||''):zeissMatch(l.description||''))||{code:null,description:'Assign manually in Frontwave',score:0},useGrandTotal:true,sharedCost:totalShared}];
+        inv.fwLines=[{header:lines[0]?.description||'',unitPrice,qty,match:(inv.supplier==='ESSILOR'?essilorMatch(lines[0]?.description||''):zeissMatch(lines[0]?.description||''))||{code:null,description:'Assign manually in Frontwave',score:0},useGrandTotal:true,sharedCost:totalShared}];
       } else {
         const sharedPerLens=totalShared/2;
         inv.fwLines=lines.slice(0,2).map(l=>{
