@@ -1432,14 +1432,15 @@ async function pdfToImages(file){
   const imgs=[];
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
-    const vp=page.getViewport({scale:1.2});
+    // Use PDF.js rotation to correct upside-down pages
+    const rot = page.rotate || 0;
+    const vp=page.getViewport({scale:1.2, rotation: rot});
     const fullH=Math.round(vp.height);
     const fullW=Math.round(vp.width);
-    // Render full page first
     const fullCanvas=document.createElement('canvas');
     fullCanvas.width=fullW; fullCanvas.height=fullH;
     await page.render({canvasContext:fullCanvas.getContext('2d'),viewport:vp}).promise;
-    // Crop to top 65% — removes payment details footer on Zeiss, irrelevant whitespace elsewhere
+    // Crop to top 65% — removes payment details footer on Zeiss
     const cropH=Math.round(fullH*0.65);
     const canvas=document.createElement('canvas');
     canvas.width=fullW; canvas.height=cropH;
@@ -1707,13 +1708,13 @@ function buildGroups(pages){
       if(same){
         const qty=lines.length>=2?2:1;
         const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/qty)*100)/100:null;
-        inv.fwLines=[{header:lines[0]?.description||'',unitPrice,qty,match:(inv.supplier==='ESSILOR'?essilorMatch(lines[0]?.description||''):zeissMatch(lines[0]?.description||''))||{code:null,description:'Assign manually in Frontwave',score:0},useGrandTotal:true,sharedCost:totalShared}];
+        inv.fwLines=[{header:lines[0]?.description||'',unitPrice,qty,match:{code:null,description:'Pending Claude match...',score:0},useGrandTotal:true,sharedCost:totalShared}];
       } else {
         const sharedPerLens=totalShared/2;
         inv.fwLines=lines.slice(0,2).map(l=>{
           const amt=l.amount||0;
           const unitPrice=amt>0?Math.round(((amt+sharedPerLens)*1.09)*100)/100:null;
-          return {header:l.description||'',unitPrice,qty:1,match:(inv.supplier==='ESSILOR'?essilorMatch(l.description||''):zeissMatch(l.description||''))||{code:null,description:'Assign manually in Frontwave',score:0},useGrandTotal:false,sharedCost:totalShared};
+          return {header:l.description||'',unitPrice,qty:1,match:{code:null,description:'Pending Claude match...',score:0},useGrandTotal:false,sharedCost:totalShared};
         });
       }
     }
