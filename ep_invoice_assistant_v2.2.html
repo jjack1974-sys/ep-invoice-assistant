@@ -1497,7 +1497,7 @@ grand_total: "TOTAL SGD" value
 qty_lenses: count of base lens rows (usually 2 for a pair, 1 for single eye)
 no1_header: null, no2_header: null, r_amount: null, l_amount: null
 shared_costs: []
-lens_lines: The DESCRIPTION column has the actual product names. The first 1-2 rows are the lens product (e.g. "Stellest 1.0 Lens (Standard Order)", "Eyezen 1.60 Blue UV Capture (0.60D)", "Stellest 2.0 Lens (Standard Order)"). Extract each of these as a lens_line entry with its AMOUNT value. EXCLUDE rows that say: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal Rock (Top-up), Crizal Sapphire HR (Top-up), Crizal Rock (Built-In), Express, Replacement, REPL_100, Ext Hi Index, Polish Edge.
+lens_lines: Scan ALL rows in the DESCRIPTION column. Extract ONLY rows that are the actual lens product name — these contain words like: Stellest, Eyezen, Varilux, Crizal, Transitions, Xperio, SV, Airwear, Stylistic, Myopilux, MyoVision, Essilor. Examples: "Stellest 1.0 Lens (Standard Order)", "Stellest 2.0 Lens (Standard Order)", "Eyezen 1.60 Blue UV Capture (0.60D)", "Varilux X Design 1.60 Crizal Sapphire UV". Each matched row becomes one lens_line entry with its AMOUNT value. STRICTLY EXCLUDE any row containing: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal Rock (Top-up), Crizal Sapphire HR (Top-up), Crizal Rock (Built-In), Express, Replacement, REPL_100, Ext Hi Index, Polish Edge, Handling, Delivery. IMPORTANT: Stellest may appear anywhere in the table — do not skip it because it is not the first row.
 
 FOR ZEISS:
 invoice_no: value after "Invoice No:" label only (e.g. S001405208). NEVER the SSO number.
@@ -1507,10 +1507,10 @@ grand_total: "Total:" value after GST
 qty_lenses: value after "Total Lenses(pcs)" label (e.g. 2)
 no1_header: null, no2_header: null, r_amount: null, l_amount: null
 shared_costs: []
-lens_lines: The table has R and L blocks. Each block has the lens code (e.g. Z55096, Z32921, Z46850, Z34376) followed by the lens name which may span 2 lines. Combine BOTH lines of the lens name into one string. Examples of combined descriptions:
+lens_lines: The table has R and L blocks. Each block has the lens code (e.g. Z55096, Z32921, Z46850, Z34376) followed by the lens name. CRITICAL: the lens name frequently wraps across 2 visual lines within the same table cell — you MUST concatenate both lines with a space to form one complete description string. Never return only the first line of a multi-line lens name. Examples of correctly combined descriptions:
   - "ZEISS Single Vision DriveSafe 1.5 PhotoFusion X" (Z55096)
   - "ZEISS Digital Lens SmartLife 1.67 BlueGuard" (Z32921)
-  - "ZEISS Progressive SmartLife Individual 3 1.6 BlueGuard" (Z46850) — note this spans 2 lines: "ZEISS Progressive SmartLife" + "Individual 3 1.6 BlueGuard"
+  - "ZEISS Progressive SmartLife Individual 3 1.6 BlueGuard" (Z46850) — line 1: "ZEISS Progressive SmartLife", line 2: "Individual 3 1.6 BlueGuard" → combine to full string
   - "ZEISS Single Vision ClearView 1.6" (Z34376)
 Use the Amount value on the lens code row only. Always return exactly 2 entries (R and L). EXCLUDE these sub-lines from lens_lines: EDGING FOR SV, EDGING FOR PAL, EDGING :RMLON-PAL PLASTIC, POLISHING - PLASTIC, X Brown, DuraVision DriveSafe UV, DuraVision AntiVirus Platinum UV, DURAVISION PLATINUM UV.
 
