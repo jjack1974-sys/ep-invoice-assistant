@@ -241,7 +241,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 
 /* Line fields — compact */
 .line-fields { padding: 8px 20px; }
-.lf-row { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #F0EFE8; gap: 8px; }
+.lf-row { display: flex; align-items: center; padding: 5px 0; border-bottom: 1px solid #F0EFE8; gap: 8px; justify-content: space-between; }
 .lf-row:last-child { border-bottom: none; }
 .lf-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink3); width: 88px; flex-shrink: 0; }
 .lf-val { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); font-family: var(--mono); }
@@ -249,7 +249,7 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
 .lf-val.big { font-size: 16px; font-weight: 700; }
 .lf-val.muted { color: var(--ink3); font-style: italic; font-family: var(--sans); font-size: 11px; font-weight: 400; }
 .lf-val.invoice-ref { font-size: 11px; color: var(--ink3); font-family: var(--mono); font-weight: 400; }
-.lf-copy { margin-left: auto; flex-shrink: 0; }
+.lf-copy { flex-shrink: 0; }
 
 /* Calc strip — compact single line */
 .calc-strip {
@@ -364,12 +364,6 @@ body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-
     </div>
     <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
     <div class="prog-detail" id="progDetail"></div>
-    <div id="skipWrap" style="display:none;margin-top:10px">
-      <button onclick="skipCurrentPage()" style="background:#8B1A1A;color:white;border:none;border-radius:5px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:var(--sans)">
-        ⏭ Skip this page
-      </button>
-      <span style="font-size:11px;color:var(--ink3);margin-left:8px">Taking too long? Skip and continue.</span>
-    </div>
   </div>
 
   <!-- Invoice viewer -->
@@ -505,27 +499,7 @@ const HEADER_MAP=[
   {p:/miyosmart/i,c:'LE2150'},
 ];
 
-function matchFromHeader(h){
-  if(!h)return null;
-  const hl=h.toLowerCase();
-  for(const m of HEADER_MAP){if(m.p.test(hl)){return HOYA_ITEMS.find(i=>i.code===m.c)||null;}}
-  // Fallback fuzzy
-  const scored=HOYA_ITEMS.map(item=>{
-    const d=item.description.toLowerCase();
-    let s=0;
-    const idx=hl.match(/1\.\d{2}/);if(idx&&d.includes(idx[0]))s+=8;
-    const ni=hl.match(/\b1[5-7][0-9]\b/);if(ni){const mv={'155':'1.55','150':'1.50','153':'1.53','160':'1.60','167':'1.67','174':'1.74','159':'1.59'};const v=mv[ni[0]];if(v&&d.includes(v))s+=6;}
-    for(const f of LENS_FAMILIES){if(hl.includes(f)&&d.toLowerCase().includes(f))s+=6;}
-    if(hl.includes('stk')&&d.includes('stk'))s+=4;
-    if(hl.includes('fcontrol')&&d.includes('full control'))s+=4;
-    if(hl.includes('meiryo')&&(d.includes('meiryo')||d.includes('(26)')))s+=4;
-    if(hl.includes('sen')&&d.includes('sensity'))s+=3;
-    return{...item,score:s};
-  }).filter(i=>i.score>=6).sort((a,b)=>b.score-a.score);
-  return scored[0]||null;
-}
-
-/* ─── ESSILOR DATABASE (384 items from Frontwave) ─── */
+/* ESSILOR DB */
 const ESSILOR_DB=[
   {c:'LE0002',d:'Essilor Crizal UV 1.60'},
   {c:'LE0004',d:'Essilor Crizal UV Airwear'},
@@ -1331,54 +1305,42 @@ const ZEISS_DB=[
   {c:'LE2681',d:'MyoJourney 1.59'},
 ];
 
-/* ─── CLAUDE LENS MATCHING (Option B) ─── */
-// Single API call: send description + full supplier DB, Claude returns top 3 matches
-async function matchLensWithClaude(description, supplier) {
-  if (!description || description.trim() === '') return [];
-  
-  const db = supplier === 'ESSILOR' ? ESSILOR_DB : ZEISS_DB;
-  const supplierName = supplier === 'ESSILOR' ? 'Essilor' : 'Carl Zeiss';
-  
-  // Format item list compactly
-  const itemList = db.map(item => `${item.c}: ${item.d}`).join('\n');
-  
-  const prompt = `You are matching an optical lens invoice description to a Frontwave inventory item code.
-
-Invoice description: "${description}"
-Supplier: ${supplierName}
-
-Frontwave item list (item_code: description):
-${itemList}
-
-Find the TOP 3 best matching items. Consider: lens type, index (1.50/1.56/1.60/1.67/1.74), coating (BlueGuard/DuraVision/UVProtect/Crizal), and variant (Individual/Superb/Plus/Digital/SV).
-
-Return ONLY this JSON, no other text:
-{"matches":[{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"},{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"},{"code":"LE0000","description":"full description","confidence":"high|medium|low","reason":"brief reason"}]}`;
-
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': getApiKey(),
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      messages: [{role: 'user', content: prompt}]
-    })
-  });
-  
-  if (!resp.ok) return [];
-  const data = await resp.json();
-  const raw = data.content[0].text;
-  const m = raw.match(/{[\s\S]*}/);
-  if (!m) return [];
-  const parsed = JSON.parse(m[0]);
-  return parsed.matches || [];
+async function matchLensWithClaude(desc,supplier){
+  if(!desc||!desc.trim())return[];
+  const db=supplier==="ESSILOR"?ESSILOR_DB:ZEISS_DB;
+  const nm=supplier==="ESSILOR"?"Essilor":"Carl Zeiss";
+  const list=db.map(x=>x.c+": "+x.d).join("\n");
+  const prompt=`Match this invoice description to the correct Frontwave item.\n\nInvoice: "${desc}"\nSupplier: ${nm}\n\nItems:\n${list}\n\nReturn ONLY JSON: {"matches":[{"code":"LE0000","description":"...","confidence":"high"},{"code":"LE0000","description":"...","confidence":"medium"},{"code":"LE0000","description":"...","confidence":"low"}]}`;
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":getApiKey(),"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:300,messages:[{role:"user",content:prompt}]})});
+    if(!r.ok)return[];
+    const d=await r.json();
+    const raw=d.content[0].text;
+    const m=raw.match(/{[\s\S]*}/);
+    if(!m)return[];
+    return JSON.parse(m[0]).matches||[];
+  }catch(e){return[];}
 }
 
+function matchFromHeader(h){
+  if(!h)return null;
+  const hl=h.toLowerCase();
+  for(const m of HEADER_MAP){if(m.p.test(hl)){return HOYA_ITEMS.find(i=>i.code===m.c)||null;}}
+  // Fallback fuzzy
+  const scored=HOYA_ITEMS.map(item=>{
+    const d=item.description.toLowerCase();
+    let s=0;
+    const idx=hl.match(/1\.\d{2}/);if(idx&&d.includes(idx[0]))s+=8;
+    const ni=hl.match(/\b1[5-7][0-9]\b/);if(ni){const mv={'155':'1.55','150':'1.50','153':'1.53','160':'1.60','167':'1.67','174':'1.74','159':'1.59'};const v=mv[ni[0]];if(v&&d.includes(v))s+=6;}
+    for(const f of LENS_FAMILIES){if(hl.includes(f)&&d.toLowerCase().includes(f))s+=6;}
+    if(hl.includes('stk')&&d.includes('stk'))s+=4;
+    if(hl.includes('fcontrol')&&d.includes('full control'))s+=4;
+    if(hl.includes('meiryo')&&(d.includes('meiryo')||d.includes('(26)')))s+=4;
+    if(hl.includes('sen')&&d.includes('sensity'))s+=3;
+    return{...item,score:s};
+  }).filter(i=>i.score>=6).sort((a,b)=>b.score-a.score);
+  return scored[0]||null;
+}
 
 function normaliseHeader(h){
   if(!h)return '';
@@ -1432,20 +1394,11 @@ async function pdfToImages(file){
   const imgs=[];
   for(let p=1;p<=pdf.numPages;p++){
     const page=await pdf.getPage(p);
-    // Use PDF.js rotation to correct upside-down pages
-    const rot = page.rotate || 0;
-    const vp=page.getViewport({scale:1.2, rotation: rot});
-    const fullH=Math.round(vp.height);
-    const fullW=Math.round(vp.width);
-    const fullCanvas=document.createElement('canvas');
-    fullCanvas.width=fullW; fullCanvas.height=fullH;
-    await page.render({canvasContext:fullCanvas.getContext('2d'),viewport:vp}).promise;
-    // Crop to top 65% — removes payment details footer on Zeiss
-    const cropH=Math.round(fullH*0.65);
+    const vp=page.getViewport({scale:2.0});
     const canvas=document.createElement('canvas');
-    canvas.width=fullW; canvas.height=cropH;
-    canvas.getContext('2d').drawImage(fullCanvas,0,0,fullW,cropH,0,0,fullW,cropH);
-    imgs.push({base64:canvas.toDataURL('image/jpeg',0.82).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
+    canvas.width=vp.width;canvas.height=vp.height;
+    await page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise;
+    imgs.push({base64:canvas.toDataURL('image/jpeg',0.92).split(',')[1],mimeType:'image/jpeg',pageNum:p,totalPages:pdf.numPages});
   }
   return imgs;
 }
@@ -1474,45 +1427,29 @@ async function processAll(){
     const page=allPages[i];
     setProgress(i,allPages.length,`Reading page ${i+1} of ${allPages.length}...`,'Step 2/2: Extracting invoice data');
     if(page.error||!page.base64){pageResults.push({invoice_no:`ERR_${i}`,page_no:1,error:page.error,grand_total:null,is_credit_note:false});continue;}
-    // 2 second pause every 5 pages to avoid rate limits
-    if(i>0 && i%5===0){
-      setProgress(i,allPages.length,'Pausing to avoid rate limits...','Step 2/2: Extracting invoice data');
-      await new Promise(r=>setTimeout(r,2000));
-    }
     try{
       const result=await extractPage(page.base64,page.mimeType);
+      console.log('PAGE',i+1,'EXTRACTED:',JSON.stringify(result));
       result.sourceFile=page.sourceFile;
       pageResults.push(result);
-    }catch(err){
-      pageResults.push({invoice_no:`ERR_${i}`,page_no:page.pageNum,error:err.message,grand_total:null});
-    }
+    }catch(err){pageResults.push({invoice_no:`ERR_${i}`,page_no:page.pageNum,error:err.message,grand_total:null});}
   }
 
   invoiceGroups=buildGroups(pageResults);
 
-  // Step 3: Claude lens matching for Essilor and Zeiss (Option B)
-  const esZeissGroups = invoiceGroups.filter(inv =>
-    (inv.supplier==='ESSILOR'||inv.supplier==='ZEISS') && !inv.isZeroValue && !inv.isCreditNote && inv.fwLines
-  );
-  if(esZeissGroups.length > 0){
-    let matched = 0;
-    for(const inv of esZeissGroups){
+  // Step 3: Claude matching for Essilor/Zeiss
+  const toMatch=invoiceGroups.filter(inv=>(inv.supplier==='ESSILOR'||inv.supplier==='ZEISS')&&!inv.isZeroValue&&!inv.isCreditNote&&inv.fwLines);
+  if(toMatch.length>0){
+    let n=0,total=toMatch.reduce((s,g)=>s+(g.fwLines?.length||0),0);
+    for(const inv of toMatch){
       for(const line of inv.fwLines){
-        matched++;
-        setProgress(matched, esZeissGroups.reduce((s,g)=>s+(g.fwLines?.length||0),0),
-          `Matching lens: ${line.header.substring(0,40)}...`,
-          'Step 3/3: Matching lens codes');
-        try{
-          const candidates = await matchLensWithClaude(line.header, inv.supplier);
-          line.candidates = candidates;
-          // Set primary match from top candidate
-          if(candidates.length > 0){
-            const top = candidates[0];
-            line.match = {code: top.code, description: top.description, score: top.confidence==='high'?16:top.confidence==='medium'?12:8};
-          }
-        }catch(e){
-          line.candidates = [];
-        }
+        n++;
+        setProgress(n,total,`Matching: ${(line.header||'').substring(0,50)}...`,'Step 3/3: Matching lens codes');
+        console.log('MATCHING:',inv.supplier,'header:',line.header);
+        const candidates=await matchLensWithClaude(line.header,inv.supplier);
+        console.log('CANDIDATES:',JSON.stringify(candidates));
+        line.candidates=candidates;
+        if(candidates.length>0)line.match={code:candidates[0].code,description:candidates[0].description,score:candidates[0].confidence==='high'?16:candidates[0].confidence==='medium'?12:8};
       }
     }
   }
@@ -1529,107 +1466,61 @@ function setProgress(done,total,detail,label){
   document.getElementById('progFill').style.width=total>0?`${(done/total)*100}%`:'0%';
   document.getElementById('progDetail').textContent=detail;
 }
-function buildPrompt() {
-  return `Read this optical lens invoice image carefully. Return ONLY a JSON object, no other text.
 
-IDENTIFY SUPPLIER: Look at the top-left letterhead.
-- "HOYA LENS (S) PTE LTD" with HOYA logo -> HOYA
-- "ESSILOR SINGAPORE" with Essilor logo -> ESSILOR  
-- "Carl Zeiss Vision Singapore" with ZEISS logo -> ZEISS
+async function extractPage(base64,mimeType){
+  const prompt=`Read this optical lens invoice. Return ONLY valid JSON.
+
+IDENTIFY SUPPLIER from letterhead top-left:
+- HOYA logo + "HOYA LENS (S) PTE LTD" -> HOYA
+- "ESSILOR SINGAPORE" + Essilor logo -> ESSILOR
+- "Carl Zeiss Vision Singapore" + ZEISS logo -> ZEISS
 - Otherwise -> UNKNOWN
 
-=== HOYA INVOICE ===
-The top-right block has exactly these labels with values beside them:
-DATE          :  [invoice_date is THIS value, e.g. 06/05/2026]
-INVOICE NO.   :  [invoice_no is THIS value, starts with IH26 or CH26, e.g. IH26025058]
-TRANS         :  SALES
-OPERATOR      :  [name]
-PAGE          :  1 of 1
+FOR HOYA:
+invoice_no: value after "INVOICE NO.:" label (e.g. IH26025058, starts with IH or CH)
+invoice_date: value after "DATE :" label (e.g. 06/05/2026)
+doc_type: "CREDIT NOTE" if CH prefix else "TAX INVOICE"
+job_ref: bottom-left line 2 only - has letters (e.g. "0407 S009 EC PPL"), NOT numeric line 1
+grand_total: "TOTAL AMOUNT" value bottom-right after GST
+no1_header: full description text on the NO=1 row (e.g. "STK - NULUX 160 HVLL UVC HVLL-UV PD 63")
+no2_header: null (always null for Hoya)
+r_amount: AMOUNT column value on "R S+..." line (after discount, e.g. 15.00)
+l_amount: AMOUNT column value on "L S+..." line (after discount, e.g. 15.00)
+shared_costs: other lines with amount > 0 (METS, FULL CONTROL, edging, mounting)
+lens_lines: []
 
-Bottom-left has TWO text lines:
-Line 1: numbers only (e.g. 0705 585050 40655183) - IGNORE THIS
-Line 2: has letters (e.g. 0407 S009 EC PPL) - this is job_ref
+FOR ESSILOR:
+invoice_no: value in "INVOICE NO." box top-right (12-digit number, e.g. 102002520963). NOT the large centred batch number.
+invoice_date: value in "DATE" box top-right
+job_ref: value after "Cust Ref:" label. NOT Track No or Order Source.
+grand_total: "TOTAL SGD" value
+qty_lenses: count of base lens rows (usually 2 for a pair, 1 for single eye)
+no1_header: null, no2_header: null, r_amount: null, l_amount: null
+shared_costs: []
+lens_lines: The DESCRIPTION column has the actual product names. The first 1-2 rows are the lens product (e.g. "Stellest 1.0 Lens (Standard Order)", "Eyezen 1.60 Blue UV Capture (0.60D)", "Stellest 2.0 Lens (Standard Order)"). Extract each of these as a lens_line entry with its AMOUNT value. EXCLUDE rows that say: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal Rock (Top-up), Crizal Sapphire HR (Top-up), Crizal Rock (Built-In), Express, Replacement, REPL_100, Ext Hi Index, Polish Edge.
 
-The invoice table has columns: NO | DESCRIPTION | QTY (PCS) | UNIT PRICE | DISC% | AMOUNT (S$)
-Row with NO=1: The DESCRIPTION on this row is the lens name. Examples:
-  "STK - NULUX 160 HVLL UVC HVLL-UV PD 63"
-  "SYNC 3 PRO 160 MEIRYO SEN 2 GY (57) MEIRYO - 16 PD56 HT22"
-  "MYSELF PROFILE 153 MEIRYO STABLE MEIRYO - XX 35.5/35 HT19"
-THIS full text on the NO=1 row is no1_header.
-no2_header is ALWAYS null - Hoya invoices only have one NO column.
+FOR ZEISS:
+invoice_no: value after "Invoice No:" label only (e.g. S001405208). NEVER the SSO number.
+invoice_date: value after "Invoice Date:" label
+job_ref: value after "Ref No.:" label
+grand_total: "Total:" value after GST
+qty_lenses: value after "Total Lenses(pcs)" label (e.g. 2)
+no1_header: null, no2_header: null, r_amount: null, l_amount: null
+shared_costs: []
+lens_lines: The table has R and L blocks. Each block has the lens code (e.g. Z55096, Z32921, Z46850, Z34376) followed by the lens name which may span 2 lines. Combine BOTH lines of the lens name into one string. Examples of combined descriptions:
+  - "ZEISS Single Vision DriveSafe 1.5 PhotoFusion X" (Z55096)
+  - "ZEISS Digital Lens SmartLife 1.67 BlueGuard" (Z32921)
+  - "ZEISS Progressive SmartLife Individual 3 1.6 BlueGuard" (Z46850) — note this spans 2 lines: "ZEISS Progressive SmartLife" + "Individual 3 1.6 BlueGuard"
+  - "ZEISS Single Vision ClearView 1.6" (Z34376)
+Use the Amount value on the lens code row only. Always return exactly 2 entries (R and L). EXCLUDE these sub-lines from lens_lines: EDGING FOR SV, EDGING FOR PAL, EDGING :RMLON-PAL PLASTIC, POLISHING - PLASTIC, X Brown, DuraVision DriveSafe UV, DuraVision AntiVirus Platinum UV, DURAVISION PLATINUM UV.
 
-Subsequent sub-rows under NO=1 show R and L prescriptions:
-"R S+..." row: AMOUNT column value = r_amount (e.g. 15.00, this is AFTER discount)
-"L S+..." row: AMOUNT column value = l_amount (e.g. 15.00, this is AFTER discount)
-Other rows like METS, FULL CONTROL, edging, mounting = shared_costs (not lenses)
-
-grand_total = "TOTAL AMOUNT" value at bottom right (after GST)
-
-=== ESSILOR INVOICE ===
-Top-right has a row of boxes: ZONE | DATE | PAGE | INVOICE NO.
-invoice_date = value inside the DATE box (e.g. 06/05/2026)
-invoice_no = value inside the INVOICE NO. box (e.g. 102002520963) - this is a 12-digit number. NOT the large centred batch number like 993555.
-
-Bottom-left area has labelled lines:
-"Cust Ref: D06-126000383" -> job_ref = "D06-126000383"
-Ignore "Track No:" and "Order Source:"
-
-grand_total = "TOTAL SGD" value (e.g. 211.46)
-
-Table has ITEM NO. and DESCRIPTION columns.
-lens_lines = the rows where DESCRIPTION says the actual lens product name.
-For each lens row, return {"description": "...", "amount": number}
-Base lens rows: "Stellest 1.0 Lens (Standard Order)", "Stellest 2.0 Lens (Standard Order)", "Eyezen 1.60 Blue UV Capture", etc.
-There will be 1 or 2 base lens rows. Return ALL of them.
-EXCLUDE these rows from lens_lines: Edging FF, Edging Full Frame, Fitting, Polish Edge, Prevencia (Top-up), Crizal...(Top-up), Crizal Rock (Built-In), Express, Replacement, REPL_100, Ext Hi Index
-
-=== ZEISS INVOICE ===
-invoice_no = value after "Invoice No:" label (e.g. S001405208). NEVER use the SSO number.
-invoice_date = value after "Invoice Date:" label (e.g. 04-May-26)
-job_ref = value after "Ref No.:" label (e.g. 0366)
-grand_total = "Total:" value at bottom (e.g. 192.93)
-
-Table has R and L blocks. For each block, the first row has the lens description (may span 2 lines), then coating/edging rows below it.
-Combine the lens description lines per block into one string.
-Return lens_lines with exactly 2 entries (R and L).
-Only include the base lens amount, not coatings or edging.
-EXCLUDE from lens_lines: EDGING FOR SV, EDGING FOR PAL, EDGING :RMLON-PAL PLASTIC, POLISHING - PLASTIC, DuraVision (when separate line), X Brown, DuraVision DriveSafe UV, DuraVision AntiVirus Platinum UV, DURAVISION PLATINUM UV
-
-Return this JSON (use null for any field you cannot clearly read):
-{"supplier":"","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
-}
-
-
-function extractPage(base64, mimeType) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://api.anthropic.com/v1/messages', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.setRequestHeader('x-api-key', getApiKey());
-    xhr.setRequestHeader('anthropic-version', '2023-06-01');
-    xhr.setRequestHeader('anthropic-dangerous-direct-browser-access', 'true');
-    xhr.timeout = 30000;
-    xhr.ontimeout = () => reject(new Error('Timed out after 30s'));
-    xhr.onerror   = () => reject(new Error('Network error'));
-    xhr.onload = () => {
-      if (xhr.status === 429) { reject(new Error('Rate limited')); return; }
-      if (xhr.status !== 200) { reject(new Error('API ' + xhr.status)); return; }
-      try {
-        const data = JSON.parse(xhr.responseText);
-        const raw = data.content[0].text;
-        const m = raw.match(/{[\s\S]*}/);
-        resolve(JSON.parse(m ? m[0] : raw));
-      } catch(e) { reject(new Error('Parse: ' + e.message)); }
-    };
-    xhr.send(JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 800,
-      messages: [{role:'user', content:[
-        {type:'image', source:{type:'base64', media_type:mimeType, data:base64}},
-        {type:'text', text:buildPrompt()}
-      ]}]
-    }));
-  });
+Return: {"supplier":"HOYA","invoice_no":null,"page_no":1,"total_pages":1,"invoice_date":null,"doc_type":"TAX INVOICE","job_ref":null,"grand_total":null,"qty_lenses":null,"no1_header":null,"no2_header":null,"r_amount":null,"l_amount":null,"shared_costs":[],"lens_lines":[]}`;
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mimeType,data:base64}},{type:'text',text:prompt}]}]})});
+  if(!resp.ok){const e=await resp.json();throw new Error(e.error?.message||'API '+resp.status);}
+  const data=await resp.json();
+  const raw=data.content[0].text;
+  const match=raw.match(/{[\s\S]*}/);
+  return JSON.parse(match?match[0]:raw);
 }
 
 
@@ -1637,21 +1528,14 @@ function buildGroups(pages){
   const map={};
   pages.forEach(p=>{
     const sup=(p.supplier||'HOYA').toUpperCase();
-    const invNo=(p.invoice_no||'UNKNOWN_'+Math.random()).trim().toUpperCase();
-    const key=sup+'::'+invNo;
-    if(!map[key])map[key]={
-      supplier:sup,invoiceNo:invNo,pages:[],
-      grandTotal:null,jobRef:null,date:null,
-      // Hoya fields
-      no1Header:null,no2Header:null,rAmt:0,lAmt:0,sharedCosts:[],
-      // Essilor/Zeiss fields
-      lensLines:[],
-      isCreditNote:false,isZeroValue:false
-    };
+    const key=(p.invoice_no||'UNKNOWN_'+Math.random()).trim().toUpperCase();
+    if(!map[key])map[key]={supplier:sup,invoiceNo:key,pages:[],grandTotal:null,jobRef:null,date:null,
+      no1Header:null,no2Header:null,rAmt:0,lAmt:0,sharedCosts:[],lensLines:[],
+      isCreditNote:false,isZeroValue:false};
     const inv=map[key];
     inv.pages.push(p);
     if(p.grand_total!=null&&inv.grandTotal===null)inv.grandTotal=p.grand_total;
-    if(p.job_ref&&p.job_ref.trim()&&!inv.jobRef)inv.jobRef=p.job_ref.trim();
+    if(p.job_ref&&!inv.jobRef)inv.jobRef=p.job_ref.trim();
     if(p.invoice_date&&!inv.date)inv.date=p.invoice_date;
     if(p.doc_type&&p.doc_type.includes('CREDIT'))inv.isCreditNote=true;
     if(sup==='HOYA'){
@@ -1664,24 +1548,16 @@ function buildGroups(pages){
       if(p.lens_lines)p.lens_lines.forEach(l=>{
         if(l.description&&!inv.lensLines.find(x=>x.description===l.description))inv.lensLines.push(l);
       });
-      if(p.shared_costs)p.shared_costs.forEach(c=>{if((c.amount||0)>0)inv.sharedCosts.push(c);});
     }
   });
 
   return Object.values(map).map(inv=>{
     inv.pages.sort((a,b)=>(a.page_no||1)-(b.page_no||1));
-
-    // Credit note — skip
     if(inv.isCreditNote)return inv;
-
-    // Zero value
-    if(inv.grandTotal===0||(inv.grandTotal!=null&&inv.grandTotal<0.01)){
-      inv.isZeroValue=true;
-      return inv;
-    }
+    if(inv.grandTotal===0||(inv.grandTotal!=null&&inv.grandTotal<0.01)){inv.isZeroValue=true;return inv;}
 
     if(inv.supplier==='HOYA'){
-      // === V13 HOYA LOGIC VERBATIM ===
+      // V13 HOYA LOGIC — VERBATIM
       const totalShared=inv.sharedCosts.reduce((s,c)=>s+(c.amount||0),0);
       const sharedPerLens=totalShared/2;
       const hasR=inv.rAmt>0,hasL=inv.lAmt>0;
@@ -1701,29 +1577,31 @@ function buildGroups(pages){
         ];
       }
     } else {
-      // === ESSILOR / ZEISS ===
+      // ESSILOR / ZEISS — unitPrice = grandTotal / qty (same rule as Hoya)
       const lines=inv.lensLines||[];
-      const totalShared=inv.sharedCosts.reduce((s,c)=>s+(c.amount||0),0);
+      // qty from extracted field, or lens_lines count, or default 2 for Zeiss pairs
+      const qtyFromPages=inv.pages.reduce((s,p)=>s+(p.qty_lenses||0),0);
       const same=lines.length<2||headersSameLens(lines[0]?.description||'',lines[1]?.description||'');
       if(same){
-        const qty=lines.length>=2?2:1;
+        const qty=qtyFromPages||Math.max(lines.length,1);
         const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/qty)*100)/100:null;
-        inv.fwLines=[{header:lines[0]?.description||'',unitPrice,qty,match:{code:null,description:'Pending Claude match...',score:0},useGrandTotal:true,sharedCost:totalShared}];
+        inv.fwLines=[{header:lines[0]?.description||lines[1]?.description||'',unitPrice,qty,
+          match:{code:null,description:'Pending...',score:0},candidates:[],useGrandTotal:true}];
       } else {
-        const sharedPerLens=totalShared/2;
+        // Different lenses — one fwLine per lens
+        const qty=1;
         inv.fwLines=lines.slice(0,2).map(l=>{
-          const amt=l.amount||0;
-          const unitPrice=amt>0?Math.round(((amt+sharedPerLens)*1.09)*100)/100:null;
-          return {header:l.description||'',unitPrice,qty:1,match:{code:null,description:'Pending Claude match...',score:0},useGrandTotal:false,sharedCost:totalShared};
+          const unitPrice=inv.grandTotal?Math.round((inv.grandTotal/2)*100)/100:null;
+          return {header:l.description||'',unitPrice,qty,
+            match:{code:null,description:'Pending...',score:0},candidates:[],useGrandTotal:true};
         });
       }
     }
 
-    // Verification
     if(inv.grandTotal&&inv.fwLines){
-      const calcTotal=inv.fwLines.reduce((s,l)=>s+(l.unitPrice||0)*(l.qty||1),0);
-      inv.calcTotal=Math.round(calcTotal*100)/100;
-      inv.verifyDiff=Math.abs(calcTotal-inv.grandTotal);
+      const calc=inv.fwLines.reduce((s,l)=>s+(l.unitPrice||0)*(l.qty||1),0);
+      inv.calcTotal=Math.round(calc*100)/100;
+      inv.verifyDiff=Math.abs(calc-inv.grandTotal);
       inv.verifyOk=inv.verifyDiff<=0.10;
     }
     return inv;
@@ -1744,14 +1622,10 @@ function renderInvoice(){
 
   const card=document.getElementById('invoiceCard');
   card.classList.remove('blocked');
-  const SUPPLIER_DISPLAY = {
-    HOYA: 'Hoya Lens (S) Pte Ltd',
-    ESSILOR: 'Essilor Singapore',
-    ZEISS: 'Carl Zeiss Vision Singapore Pte Ltd'
-  };
-  const supplierName = SUPPLIER_DISPLAY[inv.supplier] || inv.supplier || 'Unknown';
-  const remarksLabel = inv.supplier === 'HOYA' ? 'Remarks (Job Ref)' : inv.supplier === 'ESSILOR' ? 'Cust Ref' : 'Ref No';
-  let html = '';
+  const SNAMES={HOYA:'Hoya Lens (S) Pte Ltd',ESSILOR:'Essilor Singapore',ZEISS:'Carl Zeiss Vision Singapore Pte Ltd'};
+  const supplierName=SNAMES[inv.supplier]||'Unknown Supplier';
+  const remarksLabel=inv.supplier==='HOYA'?'Remarks (Job Ref)':inv.supplier==='ESSILOR'?'Cust Ref':'Ref No';
+  let html='';
 
   // Credit note
   if(inv.isCreditNote){
@@ -1800,7 +1674,7 @@ function renderInvoice(){
       <div class="field-item-inner"><div class="field-label">Name</div><div class="field-val text">${supplierName}</div></div>
       ${cpBtn('name',supplierName)}
     </div>
-    <div class="field-item">
+    <div class="field-item" style="grid-column:1/-1">
       <div class="field-item-inner"><div class="field-label">Invoice Date</div><div class="field-val">${inv.date||'—'}</div></div>
       ${inv.date?cpBtn('date',inv.date):''}
     </div>
@@ -1818,8 +1692,9 @@ function renderInvoice(){
   if(inv.fwLines&&inv.fwLines.length>0){
     inv.fwLines.forEach((line,i)=>{
       const m=line.match;
-      const mClass=m?(m.score>=14?'match-high':'match-med'):'match-low';
-      const mLabel=m?(m.score>=14?'High':'Med'):'No match';
+      const isPending=m&&m.description==='Pending...';
+      const mClass=isPending?'match-low':m?(m.score>=14?'match-high':'match-med'):'match-low';
+      const mLabel=isPending?'Matching...':(m&&m.code)?(m.score>=14?'High':'Med'):'No match';
       const lineLabel=inv.fwLines.length>1?`Line Item ${i+1} of ${inv.fwLines.length}`:`Line Item${line.isSingle?' — Single Lens':''}`;
 
       html+=`<div class="line-section">
@@ -1830,34 +1705,17 @@ function renderInvoice(){
         <div class="line-fields">
           <div class="lf-row">
             <span class="lf-label">Item Code</span>
-            <span class="lf-val">${m?m.code:'<span style="color:var(--danger)">—</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${m.code}')">Copy</button>`:''}</span>
+            <span class="lf-val">${m?m.code:'<span style="color:var(--danger)">—</span>'}</span>${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${m.code}')">Copy</button>`:''}
           </div>
           <div class="lf-row">
             <span class="lf-label">Description</span>
-            <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">Copy</button>`:''}</span>
+            <span class="lf-val text">${m?m.description:'<span style="color:var(--danger)">No match — verify in Frontwave</span>'}</span>${m&&!blocked?`<button class="cp lf-copy" onclick="copyText(this,'${esc(m.description)}')">Copy</button>`:''} 
           </div>
-          ${(inv.supplier==='ESSILOR'||inv.supplier==='ZEISS')&&line.candidates&&line.candidates.length>0?`
-          <div class="lf-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-            <span class="lf-label" style="margin-bottom:2px">Top Matches (tap to select)</span>
-            ${line.candidates.map((c,ci)=>`
-              <div onclick="selectCandidate(${currentIdx},${i},${ci})"
-                style="cursor:pointer;padding:8px 10px;border-radius:6px;width:100%;box-sizing:border-box;
-                background:${m&&m.code===c.code?'var(--accent)':'var(--surface2)'};
-                border:1.5px solid ${m&&m.code===c.code?'var(--accent)':'var(--border)'};
-                color:${m&&m.code===c.code?'white':'var(--ink1)'};
-                font-size:12px;line-height:1.4">
-                <span style="font-weight:700;font-family:var(--mono)">${c.code}</span>
-                <span style="margin-left:6px;opacity:0.8;font-size:10px;padding:1px 5px;border-radius:3px;
-                background:${c.confidence==='high'?'#22c55e':c.confidence==='medium'?'#f59e0b':'#94a3b8'};color:white">
-                  ${c.confidence}</span><br>
-                <span style="margin-top:2px;display:block">${c.description}</span>
-                ${c.reason?`<span style="font-size:10px;opacity:0.6;margin-top:1px;display:block">${c.reason}</span>`:''}
-              </div>`).join('')}
-          </div>`:''}
-          <div class="lf-row">
+          ${(inv.supplier==='ESSILOR'||inv.supplier==='ZEISS')&&line.candidates&&line.candidates.length>0?`<div class="lf-row" style="flex-direction:column;gap:5px;align-items:flex-start"><span class="lf-label">Top Matches</span>${line.candidates.map((c,ci)=>`<div onclick="selectCandidate(${currentIdx},${i},${ci})" style="cursor:pointer;padding:7px 10px;border-radius:6px;width:100%;box-sizing:border-box;background:${m&&m.code===c.code?'var(--accent)':'var(--surface2)'};border:1.5px solid ${m&&m.code===c.code?'var(--accent)':'var(--border)'};font-size:12px;color:${m&&m.code===c.code?'white':'var(--ink1)'}"><b style="font-family:var(--mono)">${c.code}</b> <span style="font-size:10px;padding:1px 4px;border-radius:3px;background:${c.confidence==='high'?'#22c55e':c.confidence==='medium'?'#f59e0b':'#94a3b8'};color:white">${c.confidence}</span><br><span style="font-size:11px">${c.description}</span></div>`).join('')}</div>`:''}
+          ${inv.supplier==='HOYA'?`<div class="lf-row">
             <span class="lf-label">Invoice</span>
             <span class="lf-val invoice-ref">${line.header||'—'}</span>
-          </div>
+          </div>`:''}
           <div class="lf-row">
             <span class="lf-label">Quantity</span>
             <span class="lf-val big">${line.qty}</span>
@@ -1874,9 +1732,9 @@ function renderInvoice(){
           </div>
         </div>
         <div class="calc-strip">
-          ${line.useGrandTotal
+          ${line.unitPrice!=null
             ?`S$${inv.grandTotal?inv.grandTotal.toFixed(2):'?'} ÷ ${line.qty} = <span>S$${line.unitPrice.toFixed(2)}</span>`
-            :`(S$${line.rAmt||line.lAmt} + S$${line.sharedPerLens.toFixed(2)} shared) × 1.09 = <span>S$${line.unitPrice.toFixed(2)}</span>`
+            :'—'
           }
         </div>
       </div>`;
@@ -1918,14 +1776,14 @@ function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();
 function showError(msg){const el=document.getElementById('errorBox');el.textContent=msg;el.style.display='block';}
 function hideError(){document.getElementById('errorBox').style.display='none';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
-function selectCandidate(groupIdx, lineIdx, candidateIdx){
-  const inv = invoiceGroups[groupIdx];
-  if(!inv||!inv.fwLines) return;
-  const line = inv.fwLines[lineIdx];
-  if(!line||!line.candidates) return;
-  const c = line.candidates[candidateIdx];
-  if(!c) return;
-  line.match = {code: c.code, description: c.description, score: c.confidence==='high'?16:c.confidence==='medium'?12:8};
+function selectCandidate(gIdx,lIdx,cIdx){
+  const inv=invoiceGroups[gIdx];
+  if(!inv?.fwLines)return;
+  const line=inv.fwLines[lIdx];
+  if(!line?.candidates)return;
+  const c=line.candidates[cIdx];
+  if(!c)return;
+  line.match={code:c.code,description:c.description,score:c.confidence==='high'?16:c.confidence==='medium'?12:8};
   renderInvoice();
 }
 
